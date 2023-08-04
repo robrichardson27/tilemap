@@ -74,7 +74,7 @@ export class TileMap {
     this.tiles = tiles;
   }
 
-  renderMap(
+  render(
     context: CanvasRenderingContext2D,
     tileImage: HTMLImageElement,
     camera: Camera
@@ -82,15 +82,15 @@ export class TileMap {
     this.context = context;
     this.tileImage = tileImage;
     this.startCol = Math.floor(camera.x / TileMap.TSize);
-    this.endCol = this.startCol + camera.width / TileMap.TSize + 1;
+    this.endCol = Math.ceil(this.startCol + camera.width / TileMap.TSize);
     this.startRow = Math.floor(camera.y / TileMap.TSize);
-    this.endRow = this.startRow + camera.height / TileMap.TSize + 1;
+    this.endRow = Math.ceil(this.startRow + camera.height / TileMap.TSize);
     this.offsetX = -camera.x + this.startCol * TileMap.TSize;
     this.offsetY = -camera.y + this.startRow * TileMap.TSize;
 
-    for (let c = this.startCol; c < this.endCol; c++) {
-      for (let r = this.startRow; r < this.endRow; r++) {
-        TileHelper.renderTile(this, c, r);
+    for (let c = this.startCol; c <= this.endCol; c++) {
+      for (let r = this.startRow; r <= this.endRow; r++) {
+        TileHelper.render(this, c, r);
       }
     }
   }

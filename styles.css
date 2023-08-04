@@ -3,11 +3,10 @@
   margin: 0;
 }
 canvas {
-  background: #eeeeee;
   display: block;
-  margin: 30px auto;
-}
-pre {
-  text-align: center;
-  font-size: 1rem;
+  margin-top: 30px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, 0);
 }

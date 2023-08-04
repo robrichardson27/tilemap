@@ -13,24 +13,28 @@ import charImgSrc from '../assets/character.png';
 export class Game {
   static Debug = true;
 
-  static run() {
+  static run(): Game {
     const game = new Game();
-    game.canvas = new Canvas();
+    game.canvas = new Canvas('game');
+    game.debugCanvas = new Canvas('debug');
     game.context = game.canvas.getContext();
+    game.debugContext = game.debugCanvas.getContext();
     game.camera = new Camera(0, 0, Canvas.Width, Canvas.Height);
     game.keyboard = new Keyboard([Key.Left, Key.Right, Key.Up, Key.Down]);
     game.tileMaps = [
       TileMap.generateBackground(),
       TileMap.generateForeground(),
     ];
-    game.character = new Character(0, 0, game.context);
+    game.character = new Character(0, 0, game);
     game.load();
     game.start();
     return game;
   }
 
   canvas!: Canvas;
+  debugCanvas!: Canvas;
   context!: CanvasRenderingContext2D;
+  debugContext!: CanvasRenderingContext2D;
   camera!: Camera;
   keyboard!: Keyboard;
   tileMaps: TileMap[] = [];
@@ -38,8 +42,6 @@ export class Game {
 
   tileImg!: HTMLImageElement;
   characterImg!: HTMLImageElement;
-
-  debug = false;
 
   load() {
     this.tileImg = new Image();
@@ -70,24 +72,20 @@ export class Game {
     if (this.keyboard.isDown(Key.Down)) {
       dirY = 1;
     }
-    // Check character can move
-    if (this.character.canMove(dirX, dirY, this.tileMaps[1], this.camera)) {
-      // Move camera
-      this.camera.move(dirX, dirY);
-      // Move character
-      this.character.move(dirX, dirY, this.camera);
-    }
+    // Move character
+    this.character.update(dirX, dirY);
   }
 
   render() {
     // Clear previous frame
     this.context.clearRect(0, 0, Canvas.Width, Canvas.Height);
+    this.debugContext.clearRect(0, 0, Canvas.Width, Canvas.Height);
     // Render background
-    this.tileMaps[0].renderMap(this.context, this.tileImg, this.camera);
+    this.tileMaps[0].render(this.context, this.tileImg, this.camera);
     // Render character
     this.character.render(this.characterImg);
     // Render foreground
-    this.tileMaps[1].renderMap(this.context, this.tileImg, this.camera);
+    this.tileMaps[1].render(this.context, this.tileImg, this.camera);
   }
 
   // TODO make a dugug class to render all debug stuff in separate canvas

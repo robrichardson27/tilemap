@@ -2,14 +2,14 @@ import { Game } from './game';
 import { TileMap, TileType } from './tile-map';
 
 export interface Tile {
+  srcX: number;
+  srcY: number;
+  srcWidth: number;
+  srcHeight: number;
   x: number;
   y: number;
   width: number;
   height: number;
-  targetX: number;
-  targetY: number;
-  targetWidth: number;
-  targetHeight: number;
   type: TileType;
 }
 
@@ -19,34 +19,30 @@ export interface Tile {
 export class TileHelper {
   static getTile(tileMap: TileMap, col: number, row: number): Tile {
     return {
-      x: tileMap.tiles[row * TileMap.Cols + col] * TileMap.TSize,
-      y: 0,
+      srcX: tileMap.tiles[row * TileMap.Cols + col] * TileMap.TSize,
+      srcY: 0,
+      srcWidth: TileMap.TSize,
+      srcHeight: TileMap.TSize,
+      x: Math.round((col - tileMap.startCol) * TileMap.TSize + tileMap.offsetX),
+      y: Math.round((row - tileMap.startRow) * TileMap.TSize + tileMap.offsetY),
       width: TileMap.TSize,
       height: TileMap.TSize,
-      targetX: Math.round(
-        (col - tileMap.startCol) * TileMap.TSize + tileMap.offsetX
-      ),
-      targetY: Math.round(
-        (row - tileMap.startRow) * TileMap.TSize + tileMap.offsetY
-      ),
-      targetWidth: TileMap.TSize,
-      targetHeight: TileMap.TSize,
       type: tileMap.tiles[row * TileMap.Cols + col],
     };
   }
 
-  static renderTile(tileMap: TileMap, col: number, row: number) {
+  static render(tileMap: TileMap, col: number, row: number) {
     const tile = TileHelper.getTile(tileMap, col, row);
     tileMap.context.drawImage(
       tileMap.tileImage,
+      tile.srcX,
+      tile.srcY,
+      tile.srcWidth,
+      tile.srcHeight,
       tile.x,
       tile.y,
       tile.width,
-      tile.height,
-      tile.targetX,
-      tile.targetY,
-      tile.targetWidth,
-      tile.targetHeight
+      tile.height
     );
     if (Game.Debug) TileHelper.debug(tileMap, tile);
   }
@@ -54,10 +50,6 @@ export class TileHelper {
   static debug(tileMap: TileMap, tile: Tile) {
     tileMap.context.font = '12px sans-serif';
     tileMap.context.fillStyle = 'cyan';
-    tileMap.context.fillText(
-      `${tile.targetX}, ${tile.targetY}`,
-      tile.targetX,
-      tile.targetY + 12
-    );
+    tileMap.context.fillText(`${tile.x}, ${tile.y}`, tile.x, tile.y + 12);
   }
 }

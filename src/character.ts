@@ -8,23 +8,32 @@ import { TileMap, TileType } from './tile-map';
  * Render a character
  */
 export class Character {
-  static Speed = 1;
+  static Speed = 2;
   static SrcX = 0;
   static SrcY = 0;
   static Width = 64;
   static Height = 64;
   static MaxX = Canvas.Width - Character.Width;
   static MaxY = Canvas.Height - Character.Height;
+  static FarEdgeDistFactor = 0.75;
+  static NearEdgeDistFactor = 0.25;
 
   x: number;
   y: number;
   context: CanvasRenderingContext2D;
+  debugContext: CanvasRenderingContext2D;
+  camera: Camera;
+  tileMap: TileMap;
   touchingTiles: Tile[] = [];
+  wallTiles: Tile[] = [];
 
-  constructor(x: number, y: number, context: CanvasRenderingContext2D) {
+  constructor(x: number, y: number, game: Game) {
     this.x = x;
     this.y = y;
-    this.context = context;
+    this.context = game.context;
+    this.debugContext = game.debugContext;
+    this.camera = game.camera;
+    this.tileMap = game.tileMaps[1];
   }
 
   render(img: HTMLImageElement) {
@@ -34,160 +43,152 @@ export class Character {
       Character.SrcY,
       Character.Width,
       Character.Height,
-      this.x,
-      this.y,
+      this.x - this.camera.x,
+      this.y - this.camera.y,
       Character.Width,
       Character.Height
     );
     if (Game.Debug) {
-      this.context.beginPath();
-      this.context.strokeStyle = 'red';
-      this.context.strokeRect(
-        this.x,
-        this.y,
-        Character.Width,
-        Character.Height
-      );
-      this.context.closePath();
-      if (this.touchingTiles && this.touchingTiles.length) {
-        this.context.beginPath();
-        this.context.strokeStyle = 'yellow';
-        this.touchingTiles.forEach((tile, index) => {
-          this.context.strokeRect(
-            tile.targetX,
-            tile.targetY,
-            TileMap.TSize,
-            TileMap.TSize
-          );
-          this.context.font = '12px sans-serif';
-          this.context.fillStyle = 'yellow';
-          this.context.fillText(
-            index + '',
-            tile.targetX + TileMap.TSize / 2,
-            tile.targetY + TileMap.TSize / 2
-          );
-        });
-        this.context.closePath();
-      }
+      this.debug();
     }
   }
 
-  move(dirX: number, dirY: number, camera: Camera) {
-    // Adjust speed when camera stops following character
-    let speed = this.adjustSpeed(camera);
-    // Move character
-    this.x += dirX * speed;
-    this.y += dirY * speed;
+  update(dirX: number, dirY: number) {
+    // Store previous position
+    const prev = { x: this.x, y: this.y };
+    // Move character x
+    this.x += dirX * Character.Speed;
+    // Detect collision
+    let collides = this.collisionDetection();
+    // React to collision
+    if (collides) {
+      this.x = prev.x;
+      this.y = prev.y;
+    }
+    prev.x = this.x;
+    prev.y = this.y;
+    // Move character y
+    this.y += dirY * Character.Speed;
+    // Detect collision
+    collides = this.collisionDetection();
+    // React to collision
+    if (collides) {
+      this.x = prev.x;
+      this.y = prev.y;
+    }
+    // Update camera when character is near edge
+    this.updateCamera();
     // Clamp values so they don't extend grid
-    this.x = Math.max(0, Math.min(this.x, Character.MaxX));
-    this.y = Math.max(0, Math.min(this.y, Character.MaxY));
-    if (Game.Debug) this.debug();
+    this.clampValues();
   }
 
-  canMove(
-    dirX: number,
-    dirY: number,
-    tileMap: TileMap,
-    camera: Camera
-  ): boolean {
-    const charX = camera.x + this.x;
-    const charY = camera.y + this.y;
-    const minCol = Math.floor(charX / TileMap.TSize);
-    const minRow = Math.floor(charY / TileMap.TSize);
-    const maxCol = Math.ceil(charX / TileMap.TSize);
-    const maxRow = Math.ceil(charY / TileMap.TSize);
-
-    this.touchingTiles = [
-      TileHelper.getTile(tileMap, minCol, minRow),
-      TileHelper.getTile(tileMap, maxCol, minRow),
-      TileHelper.getTile(tileMap, minCol, maxRow),
-      TileHelper.getTile(tileMap, maxCol, maxRow),
-    ];
-
-    // Add buffer around character to ignore collision
-    const cE1 = this.touchingTiles[1].targetY + TileMap.TSize - this.y > 10;
-    const cE2 = this.y + Character.Height - this.touchingTiles[3].targetY > 10;
-    const cW1 = this.touchingTiles[0].targetY + TileMap.TSize - this.y > 10;
-    const cW2 = this.y + Character.Height - this.touchingTiles[2].targetY > 10;
-    const cS1 = this.touchingTiles[2].targetX + TileMap.TSize - this.x > 10;
-    const cS2 = this.x + Character.Height - this.touchingTiles[3].targetX > 10;
-    const cN1 = this.touchingTiles[0].targetX + TileMap.TSize - this.x > 10;
-    const cN2 = this.x + Character.Height - this.touchingTiles[1].targetX > 10;
-
-    // Check East
-    if (dirX === 1) {
-      if (
-        (this.touchingTiles[1].type === TileType.TreeTrunk && cE1) ||
-        (this.touchingTiles[3].type === TileType.TreeTrunk && cE2)
-      ) {
-        return false;
-      }
-    }
-    // Check West
-    if (dirX === -1) {
-      if (
-        (this.touchingTiles[0].type === TileType.TreeTrunk && cW1) ||
-        (this.touchingTiles[2].type === TileType.TreeTrunk && cW2)
-      ) {
-        return false;
-      }
-    }
-    // Check South
-    if (dirY === 1) {
-      if (
-        (this.touchingTiles[2].type === TileType.TreeTrunk && cS1) ||
-        (this.touchingTiles[3].type === TileType.TreeTrunk && cS2)
-      ) {
-        return false;
-      }
-    }
-    // Check North
-    if (dirY === -1) {
-      if (
-        (this.touchingTiles[0].type === TileType.TreeTrunk && cN1) ||
-        (this.touchingTiles[1].type === TileType.TreeTrunk && cN2)
-      ) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private adjustSpeed(camera: Camera): number {
-    let speed = Character.Speed;
-    // Increase is difference between speeds
-    const speedDif = Camera.Speed - Character.Speed;
-    // Character is East
+  private updateCamera() {
     if (
-      camera.x + camera.width === camera.maxX + Canvas.Width &&
-      this.x + Character.Width !== Canvas.Width
+      this.x + Character.Width >
+      this.camera.x + Canvas.Width * Character.FarEdgeDistFactor
     ) {
-      speed += speedDif;
+      this.camera.update(1, 0);
     }
-    // Character is West
-    if (camera.x === 0 && this.x !== 0) {
-      speed += speedDif;
+    if (this.x - this.camera.x < Canvas.Width * Character.NearEdgeDistFactor) {
+      this.camera.update(-1, 0);
     }
-    // Character is South
     if (
-      camera.y + camera.height === camera.maxY + Canvas.Height &&
-      this.y + Character.Height !== Canvas.Height
+      this.y + Character.Height >
+      this.camera.y + Canvas.Height * Character.FarEdgeDistFactor
     ) {
-      speed += speedDif;
+      this.camera.update(0, 1);
     }
-    // Character is North
-    if (camera.y === 0 && this.y !== 0) {
-      speed += speedDif;
+    if (this.y - this.camera.y < Canvas.Height * Character.NearEdgeDistFactor) {
+      this.camera.update(0, -1);
     }
-    return speed;
   }
 
-  debug() {
-    const character = document.getElementById('character') as HTMLPreElement;
-    character.innerHTML = `
-      <p>Character: { x: ${this.x}, y: ${this.y}, x2: ${
-      this.x + Character.Width
-    }, y2: ${this.y + Character.Height} }</p>
-    `;
+  private clampValues() {
+    this.x = Math.max(0, Math.min(this.x, Character.MaxX + this.camera.x));
+    this.y = Math.max(0, Math.min(this.y, Character.MaxY + this.camera.y));
+  }
+
+  private collisionDetection(): boolean {
+    const startCol = Math.floor(this.x / TileMap.TSize);
+    const endCol = Math.ceil((this.x + Character.Width) / TileMap.TSize);
+    const startRow = Math.floor(this.y / TileMap.TSize);
+    const endRow = Math.ceil((this.y + Character.Height) / TileMap.TSize);
+
+    // Tiles character is in
+    this.touchingTiles = [];
+    // Wall tiles character cannot pass through
+    this.wallTiles = [];
+
+    for (let c = startCol; c < endCol; c++) {
+      for (let r = startRow; r < endRow; r++) {
+        const tile = TileHelper.getTile(this.tileMap, c, r);
+        this.touchingTiles.push(tile);
+        if (tile.type === TileType.TreeTrunk) {
+          this.wallTiles.push(tile);
+        }
+      }
+    }
+
+    let collides = false;
+
+    // AABB collision detection
+    this.wallTiles.forEach((tile) => {
+      let xCollides =
+        this.x - this.camera.x < tile.x + TileMap.TSize &&
+        this.x - this.camera.x + Character.Width > tile.x;
+      let yCollides =
+        this.y - this.camera.y < tile.y + TileMap.TSize &&
+        this.y - this.camera.y + Character.Height > tile.y;
+      collides = xCollides && yCollides;
+    });
+
+    return collides;
+  }
+
+  private debug() {
+    this.debugContext.beginPath();
+    this.debugContext.strokeStyle = 'red';
+    this.debugContext.lineWidth = 1;
+    this.debugContext.strokeRect(
+      this.x - this.camera.x,
+      this.y - this.camera.y,
+      Character.Width,
+      Character.Height
+    );
+    this.debugContext.closePath();
+    if (this.touchingTiles && this.touchingTiles.length) {
+      this.debugContext.beginPath();
+      this.debugContext.strokeStyle = 'yellow';
+      this.debugContext.lineWidth = 1;
+      this.touchingTiles.forEach((tile, index) => {
+        this.debugContext.strokeRect(
+          tile.x,
+          tile.y,
+          TileMap.TSize,
+          TileMap.TSize
+        );
+        this.debugContext.font = '12px sans-serif';
+        this.debugContext.fillStyle = 'yellow';
+        this.debugContext.fillText(
+          index + '',
+          tile.x + TileMap.TSize / 2,
+          tile.y + TileMap.TSize / 2
+        );
+      });
+      this.debugContext.closePath();
+    }
+    if (this.wallTiles && this.wallTiles.length) {
+      this.debugContext.beginPath();
+      this.debugContext.fillStyle = 'rgba(255, 0, 0, 0.3)';
+      this.wallTiles.forEach((tile) => {
+        this.debugContext.fillRect(
+          tile.x,
+          tile.y,
+          TileMap.TSize,
+          TileMap.TSize
+        );
+      });
+      this.debugContext.closePath();
+    }
   }
 }

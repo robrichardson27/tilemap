@@ -8,8 +8,8 @@ export class Canvas {
   private canvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
 
-  constructor() {
-    this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
+  constructor(id: string) {
+    this.canvas = document.getElementById(id) as HTMLCanvasElement;
     this.canvas.setAttribute('width', Canvas.Width + '');
     this.canvas.setAttribute('height', Canvas.Height + '');
     this.context = this.canvas.getContext('2d') as CanvasRenderingContext2D;

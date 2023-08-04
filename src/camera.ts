@@ -1,12 +1,10 @@
-import { Game } from './game';
+import { Character } from './character';
 import { TileMap } from './tile-map';
 
 /**
  * Contains information regarding to the Camera's position and viewport
  */
 export class Camera {
-  static Speed = 2;
-
   x: number;
   y: number;
   width: number;
@@ -23,22 +21,12 @@ export class Camera {
     this.maxY = TileMap.Rows * TileMap.TSize - height;
   }
 
-  move(dirX: number, dirY: number) {
+  update(dirX: number, dirY: number) {
     // Move camera
-    this.x += dirX * Camera.Speed;
-    this.y += dirY * Camera.Speed;
+    this.x += dirX * Character.Speed;
+    this.y += dirY * Character.Speed;
     // Clamp values
     this.x = Math.max(0, Math.min(this.x, this.maxX));
     this.y = Math.max(0, Math.min(this.y, this.maxY));
-    if (Game.Debug) this.debug();
-  }
-
-  debug() {
-    const camera = document.getElementById('camera') as HTMLPreElement;
-    camera.innerHTML = `
-      <p>Camera: { x: ${this.x}, y: ${this.y} }, { x: ${
-      this.x + this.width
-    }, y: ${this.y + this.height} }</p>
-    `;
   }
 }
