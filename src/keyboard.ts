@@ -50,4 +50,13 @@ export class Keyboard {
     }
     return this.keys[keyCode];
   }
+
+  isAnyDown(keyCode: Key[]): boolean {
+    for (let i = 0; i < keyCode.length; i++) {
+      if (this.keys[keyCode[i]]) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

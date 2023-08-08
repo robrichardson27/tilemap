@@ -1,4 +1,4 @@
-import { Game } from './game';
+import { DEBUG } from './app';
 import { TileMap, TileType } from './tile-map';
 
 export interface Tile {
@@ -44,7 +44,7 @@ export class TileHelper {
       tile.width,
       tile.height
     );
-    if (Game.Debug) TileHelper.debug(tileMap, tile);
+    if (DEBUG.enabled) TileHelper.debug(tileMap, tile);
   }
 
   static debug(tileMap: TileMap, tile: Tile) {

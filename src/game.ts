@@ -4,14 +4,13 @@ import { Character } from './character';
 import { Key, Keyboard } from './keyboard';
 import { TileMap } from './tile-map';
 import tileImgSrc from '../assets/tiles.png';
-import charImgSrc from '../assets/character.png';
 
 /**
  * Main game class, inits game objects, loads tiles,
  * starts game loop, updates and renders
  */
 export class Game {
-  static Debug = true;
+  static TickInterval = 200;
 
   static run(): Game {
     const game = new Game();
@@ -27,7 +26,7 @@ export class Game {
     ];
     game.character = new Character(0, 0, game);
     game.load();
-    game.start();
+    game.start(0);
     return game;
   }
 
@@ -39,18 +38,18 @@ export class Game {
   keyboard!: Keyboard;
   tileMaps: TileMap[] = [];
   character!: Character;
+  tick: number = 0;
 
   tileImg!: HTMLImageElement;
-  characterImg!: HTMLImageElement;
 
   load() {
+    this.character.load();
     this.tileImg = new Image();
     this.tileImg.src = tileImgSrc;
-    this.characterImg = new Image();
-    this.characterImg.src = charImgSrc;
   }
 
-  start = () => {
+  start = (time: DOMHighResTimeStamp) => {
+    this.tick = Math.round(time / Game.TickInterval);
     window.requestAnimationFrame(this.start);
     this.update();
     this.render();
@@ -74,6 +73,8 @@ export class Game {
     }
     // Move character
     this.character.update(dirX, dirY);
+    // Move monster
+    // this.monster.update();
   }
 
   render() {
@@ -83,10 +84,8 @@ export class Game {
     // Render background
     this.tileMaps[0].render(this.context, this.tileImg, this.camera);
     // Render character
-    this.character.render(this.characterImg);
+    this.character.render();
     // Render foreground
     this.tileMaps[1].render(this.context, this.tileImg, this.camera);
   }
-
-  // TODO make a dugug class to render all debug stuff in separate canvas
 }
