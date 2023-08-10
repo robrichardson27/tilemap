@@ -49,7 +49,7 @@ export class TileHelper {
 
   static debug(tileMap: TileMap, tile: Tile) {
     tileMap.context.font = '12px sans-serif';
-    tileMap.context.fillStyle = 'cyan';
+    tileMap.context.fillStyle = 'purple';
     tileMap.context.fillText(`${tile.x}, ${tile.y}`, tile.x, tile.y + 12);
   }
 }

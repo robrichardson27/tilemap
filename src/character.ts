@@ -39,7 +39,7 @@ export class Character {
     this.context = game.context;
     this.debugContext = game.debugContext;
     this.camera = game.camera;
-    this.tileMap = game.tileMaps[1];
+    this.tileMap = game.tileMaps[0];
   }
 
   load() {
@@ -165,7 +165,8 @@ export class Character {
       for (let r = startRow; r < endRow; r++) {
         const tile = TileHelper.getTile(this.tileMap, c, r);
         this.touchingTiles.push(tile);
-        if (tile.type === TileType.TreeTrunk) {
+        // TODO: create CollisionTile class that inherits from Tile class
+        if (tile.type === TileType.Sea) {
           this.wallTiles.push(tile);
         }
       }
@@ -200,7 +201,7 @@ export class Character {
     this.debugContext.closePath();
     if (this.touchingTiles && this.touchingTiles.length) {
       this.debugContext.beginPath();
-      this.debugContext.strokeStyle = 'yellow';
+      this.debugContext.strokeStyle = 'red';
       this.debugContext.lineWidth = 1;
       this.touchingTiles.forEach((tile, index) => {
         this.debugContext.strokeRect(
@@ -210,7 +211,7 @@ export class Character {
           TileMap.TSize
         );
         this.debugContext.font = '12px sans-serif';
-        this.debugContext.fillStyle = 'yellow';
+        this.debugContext.fillStyle = 'red';
         this.debugContext.fillText(
           index + '',
           tile.x + TileMap.TSize / 2,

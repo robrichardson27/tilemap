@@ -3,7 +3,8 @@ import { Canvas } from './canvas';
 import { Character } from './character';
 import { Key, Keyboard } from './keyboard';
 import { TileMap } from './tile-map';
-import tileImgSrc from '../assets/tiles.png';
+import tileImgSrc from '../assets/tilemap.png';
+import healthImgSrc from '../assets/health.png';
 
 /**
  * Main game class, inits game objects, loads tiles,
@@ -20,11 +21,8 @@ export class Game {
     game.debugContext = game.debugCanvas.getContext();
     game.camera = new Camera(0, 0, Canvas.Width, Canvas.Height);
     game.keyboard = new Keyboard([Key.Left, Key.Right, Key.Up, Key.Down]);
-    game.tileMaps = [
-      TileMap.generateBackground(),
-      TileMap.generateForeground(),
-    ];
-    game.character = new Character(0, 0, game);
+    game.tileMaps = [TileMap.generateBackground()];
+    game.character = new Character(4 * TileMap.TSize, 4 * TileMap.TSize, game);
     game.load();
     game.start(0);
     return game;
@@ -41,11 +39,14 @@ export class Game {
   tick: number = 0;
 
   tileImg!: HTMLImageElement;
+  healthImg!: HTMLImageElement;
 
   load() {
     this.character.load();
     this.tileImg = new Image();
     this.tileImg.src = tileImgSrc;
+    this.healthImg = new Image();
+    this.healthImg.src = healthImgSrc;
   }
 
   start = (time: DOMHighResTimeStamp) => {
@@ -73,8 +74,6 @@ export class Game {
     }
     // Move character
     this.character.update(dirX, dirY);
-    // Move monster
-    // this.monster.update();
   }
 
   render() {
@@ -85,7 +84,5 @@ export class Game {
     this.tileMaps[0].render(this.context, this.tileImg, this.camera);
     // Render character
     this.character.render();
-    // Render foreground
-    this.tileMaps[1].render(this.context, this.tileImg, this.camera);
   }
 }

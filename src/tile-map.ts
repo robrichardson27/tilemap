@@ -1,14 +1,14 @@
 import { Camera } from './camera';
 import { TileHelper } from './tile';
-import { getRandomInt } from './utils';
 
 export enum TileType {
   Empty = -1,
   Grass = 0,
+  GrassSand = 5,
   Sand = 1,
-  TreeTrunk = 2,
-  TreeTop = 3,
-  Bush = 4,
+  SandSea1 = 2,
+  SandSea2 = 4,
+  Sea = 3,
 }
 
 /**
@@ -23,40 +23,14 @@ export class TileMap {
     return TileMap.Cols * TileMap.Rows;
   }
 
+  // TODO: Replace with levels loaded from source or level editor
   static generateBackground(): TileMap {
-    const map: number[] = [];
-    for (let i = 0; i < TileMap.total(); i++) {
-      // Generate Grass or Sand tile
-      map.push(getRandomInt(2));
-    }
-    return new TileMap(map);
-  }
-
-  static generateForeground(): TileMap {
-    const map: number[] = [];
-    let treeTrunkIndexes: number[] = [];
-    for (let i = 0; i < TileMap.total(); i++) {
-      if (i === treeTrunkIndexes[0]) {
-        // Generate TreeTrunk
-        map.push(TileType.TreeTrunk);
-        treeTrunkIndexes.shift();
-      } else {
-        // Generate Bush, TreeTop or Empty tile
-        const n = getRandomInt(5);
-        switch (n) {
-          case TileType.Bush:
-            map.push(TileType.Bush);
-            break;
-          case TileType.TreeTop:
-            map.push(TileType.TreeTop);
-            // If top we need to place trunk on next row
-            treeTrunkIndexes.push(i + TileMap.Cols);
-            break;
-          default:
-            map.push(TileType.Empty);
-        }
-      }
-    }
+    const map: number[] = [
+      3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+      3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 5, 5,
+      5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ];
     return new TileMap(map);
   }
 
