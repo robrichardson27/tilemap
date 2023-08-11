@@ -166,7 +166,7 @@ export class Character {
         const tile = TileHelper.getTile(this.tileMap, c, r);
         this.touchingTiles.push(tile);
         // TODO: create CollisionTile class that inherits from Tile class
-        if (tile.type === TileType.Sea) {
+        if (tile.type === TileType.Sea || tile.type === TileType.ShoreR) {
           this.wallTiles.push(tile);
         }
       }

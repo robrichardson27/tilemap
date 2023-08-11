@@ -51,5 +51,11 @@ export class TileHelper {
     tileMap.context.font = '12px sans-serif';
     tileMap.context.fillStyle = 'purple';
     tileMap.context.fillText(`${tile.x}, ${tile.y}`, tile.x, tile.y + 12);
+    if (tile.type === TileType.Sea || tile.type === TileType.ShoreR) {
+      tileMap.context.beginPath();
+      tileMap.context.fillStyle = 'rgba(255, 0, 0, 0.2)';
+      tileMap.context.fillRect(tile.x, tile.y, TileMap.TSize, TileMap.TSize);
+      tileMap.context.closePath();
+    }
   }
 }

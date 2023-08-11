@@ -3,12 +3,36 @@ import { TileHelper } from './tile';
 
 export enum TileType {
   Empty = -1,
-  Grass = 0,
-  GrassSand = 5,
-  Sand = 1,
-  SandSea1 = 2,
-  SandSea2 = 4,
-  Sea = 3,
+  BeachBL = 0,
+  BeachB = 1,
+  BeachBR = 2,
+  BeachR = 3,
+  BeachTR = 4,
+  BeachT = 5,
+  BeachTL = 6,
+  BeachL = 7,
+  ShoreBL = 8,
+  ShoreB = 9,
+  ShoreBR = 10,
+  ShoreR = 11,
+  ShoreTR = 12,
+  ShoreT = 13,
+  ShoreTL = 14,
+  ShoreL = 15,
+  Sea = 16,
+  Sand = 17,
+  Sand2 = 18,
+  GrassSandBL = 19,
+  GrassSandB = 20,
+  GrassSandBR = 21,
+  GrassSandR = 22,
+  GrassSandTR = 23,
+  GrassSandT = 24,
+  GrassSandTL = 25,
+  GrassSandL = 26,
+  GrassEmpty = 27,
+  GrassPlant = 28,
+  GrassBlades = 29,
 }
 
 /**
@@ -26,10 +50,9 @@ export class TileMap {
   // TODO: Replace with levels loaded from source or level editor
   static generateBackground(): TileMap {
     const map: number[] = [
-      3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-      3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 5, 5,
-      5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      16, 16, 11, 3, 17, 17, 17, 18, 17, 26, 16, 16, 11, 3, 17, 17, 17, 17, 18,
+      26, 16, 16, 11, 3, 17, 18, 17, 18, 17, 26, 9, 9, 10, 3, 18, 17, 17, 17,
+      18, 26, 1, 1, 1, 2,
     ];
     return new TileMap(map);
   }
