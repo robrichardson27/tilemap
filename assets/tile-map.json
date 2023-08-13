@@ -65,7 +65,7 @@
   },
   {
     "type": 16,
-    "outOfBounds": false
+    "outOfBounds": true
   },
   {
     "type": 17,

@@ -1,18 +1,15 @@
 import css from '../styles.css';
-import { Debug } from './debug';
+import { Debugger } from './debugger';
 import { Game } from './game';
 
-/**
- * Provide debugger
- */
-export const DEBUG = new Debug();
-
-/**
- * Load styles
- */
+// Load styles
 css;
 
-/**
- * Start the game
- */
-Game.run();
+// Create game
+const GAME = new Game();
+
+// Create debugger and inject Game
+export const DEBUG = new Debugger(GAME);
+
+// Start the game
+GAME.run();
