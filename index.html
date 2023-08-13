@@ -5,11 +5,12 @@
     <title>Tilemap Game</title>
   </head>
   <body>
-    <canvas id="game"></canvas>
-    <canvas id="debug"></canvas>
-    <div class="debug">
+    <div class="debug-checkbox">
       <input id="debug-input" type="checkbox" />
       <label for="debug-input">Debug</label>
     </div>
+    <canvas id="game" class="game-canvas"></canvas>
+    <!-- TODO: replace tile-selector canvas with custom UI -->
+    <canvas id="tile-selector"></canvas>
   </body>
 </html>

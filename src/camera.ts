@@ -12,13 +12,19 @@ export class Camera {
   maxX: number;
   maxY: number;
 
-  constructor(x: number, y: number, width: number, height: number) {
+  constructor(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    tileMap: TileMap
+  ) {
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
-    this.maxX = TileMap.Cols * TileMap.TSize - width;
-    this.maxY = TileMap.Rows * TileMap.TSize - height;
+    this.maxX = tileMap.cols * TileMap.TSize - width;
+    this.maxY = tileMap.rows * TileMap.TSize - height;
   }
 
   update(dirX: number, dirY: number) {

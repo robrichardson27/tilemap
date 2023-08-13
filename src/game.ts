@@ -3,8 +3,9 @@ import { Canvas } from './canvas';
 import { Character } from './character';
 import { Key, Keyboard } from './keyboard';
 import { TileMap } from './tile-map';
-import tileImgSrc from '../assets/tilemap.png';
-import healthImgSrc from '../assets/health.png';
+import { TileSelector } from './editor/tile-selector';
+import { DEBUG } from './app';
+import { TilePlacer } from './editor/tile-placer';
 
 /**
  * Main game class, inits game objects, loads tiles,
@@ -16,38 +17,58 @@ export class Game {
   static run(): Game {
     const game = new Game();
     game.canvas = new Canvas('game');
-    game.debugCanvas = new Canvas('debug');
-    game.context = game.canvas.getContext();
-    game.debugContext = game.debugCanvas.getContext();
-    game.camera = new Camera(0, 0, Canvas.Width, Canvas.Height);
     game.keyboard = new Keyboard([Key.Left, Key.Right, Key.Up, Key.Down]);
-    game.tileMaps = [TileMap.generateBackground()];
-    game.character = new Character(4 * TileMap.TSize, 4 * TileMap.TSize, game);
-    game.load();
+
+    game.background = TileMap.createBackground();
+
+    game.camera = new Camera(
+      0,
+      0,
+      Canvas.Width,
+      Canvas.Height,
+      game.background
+    );
+
+    game.background.setCamera(game.camera);
+
+    // TODO: tidy up game editor and debug stuff
+    game.tileSelector = new TileSelector();
+    game.tilePlacer = new TilePlacer({
+      id: 'tile-placer',
+      hide: !DEBUG.enabled,
+      tileSelector: game.tileSelector,
+      canvas: game.canvas,
+      tileMap: game.background,
+    });
+
+    game.character = new Character({
+      id: 'character',
+      hide: false,
+      x: 0,
+      y: 0,
+      camera: game.camera,
+      tileMap: game.background,
+      tick: game.tick,
+      keyboard: game.keyboard,
+    });
+
+    game.canvas
+      .addLayer(game.background)
+      .addLayer(game.tilePlacer)
+      .addLayer(game.character);
+
     game.start(0);
     return game;
   }
 
   canvas!: Canvas;
-  debugCanvas!: Canvas;
-  context!: CanvasRenderingContext2D;
-  debugContext!: CanvasRenderingContext2D;
+  tileSelector!: TileSelector;
+  tilePlacer!: TilePlacer;
   camera!: Camera;
   keyboard!: Keyboard;
-  tileMaps: TileMap[] = [];
+  background!: TileMap;
   character!: Character;
   tick: number = 0;
-
-  tileImg!: HTMLImageElement;
-  healthImg!: HTMLImageElement;
-
-  load() {
-    this.character.load();
-    this.tileImg = new Image();
-    this.tileImg.src = tileImgSrc;
-    this.healthImg = new Image();
-    this.healthImg.src = healthImgSrc;
-  }
 
   start = (time: DOMHighResTimeStamp) => {
     this.tick = Math.round(time / Game.TickInterval);
@@ -78,11 +99,14 @@ export class Game {
 
   render() {
     // Clear previous frame
-    this.context.clearRect(0, 0, Canvas.Width, Canvas.Height);
-    this.debugContext.clearRect(0, 0, Canvas.Width, Canvas.Height);
-    // Render background
-    this.tileMaps[0].render(this.context, this.tileImg, this.camera);
-    // Render character
-    this.character.render();
+    this.canvas.clear();
+    // Rener all canvas layers
+    this.canvas.render();
+
+    // TODO: Tidy up level editor stuff
+    this.tileSelector.clear();
+    if (DEBUG.enabled) {
+      this.tileSelector.render();
+    }
   }
 }

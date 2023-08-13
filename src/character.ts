@@ -1,16 +1,24 @@
 import { Camera } from './camera';
-import { Canvas } from './canvas';
-import { Game } from './game';
+import { Canvas, CanvasLayer, CanvasLayerOptions } from './canvas';
 import { Tile, TileHelper } from './tile';
-import { TileMap, TileType } from './tile-map';
+import { TileMap } from './tile-map';
 import charImgSrc from '../assets/character.png';
-import { Key } from './keyboard';
+import { Key, Keyboard } from './keyboard';
 import { DEBUG } from './app';
+
+export interface CharacterOptions extends CanvasLayerOptions {
+  x: number;
+  y: number;
+  camera: Camera;
+  tileMap: TileMap;
+  tick: number;
+  keyboard: Keyboard;
+}
 
 /**
  * Render a character
  */
-export class Character {
+export class Character extends CanvasLayer {
   static Speed = 2;
   static SrcX = 1;
   static SrcY = 1;
@@ -21,36 +29,34 @@ export class Character {
   static FarEdgeDistFactor = 0.75;
   static NearEdgeDistFactor = 0.25;
 
-  x: number;
-  y: number;
-  context: CanvasRenderingContext2D;
-  debugContext: CanvasRenderingContext2D;
-  camera: Camera;
-  tileMap: TileMap;
-  touchingTiles: Tile[] = [];
-  wallTiles: Tile[] = [];
-  characterImg!: HTMLImageElement;
-  game!: Game;
+  private x: number;
+  private y: number;
+  private camera: Camera;
+  private tileMap: TileMap;
+  private touchingTiles: Tile[] = [];
+  private outOfBoundsTiles: Tile[] = [];
+  private characterImg: HTMLImageElement;
+  private tick: number;
+  private keyboard: Keyboard;
 
-  constructor(x: number, y: number, game: Game) {
-    this.x = x;
-    this.y = y;
-    this.game = game;
-    this.context = game.context;
-    this.debugContext = game.debugContext;
-    this.camera = game.camera;
-    this.tileMap = game.tileMaps[0];
-  }
-
-  load() {
+  constructor(options: CharacterOptions) {
+    super(options);
+    this.x = options.x;
+    this.y = options.y;
+    this.camera = options.camera;
+    this.tileMap = options.tileMap;
+    this.tick = options.tick;
+    this.keyboard = options.keyboard;
     this.characterImg = new Image();
     this.characterImg.src = charImgSrc;
   }
 
-  render() {
-    this.renderCharacter();
-    this.renderShadow();
-    if (DEBUG.enabled) this.debug();
+  render(context: CanvasRenderingContext2D) {
+    this.renderCharacter(context);
+    this.renderShadow(context);
+    if (DEBUG.enabled) {
+      this.debug(context);
+    }
   }
 
   update(dirX: number, dirY: number) {
@@ -82,21 +88,21 @@ export class Character {
     this.clampValues();
   }
 
-  private renderCharacter() {
-    const tickOffset = this.game.tick % 4;
+  private renderCharacter(context: CanvasRenderingContext2D) {
+    const tickOffset = this.tick % 4;
     let imgSrcXOffset = Character.SrcX;
     let imgSrcYOffset = Character.SrcY;
-    if (this.game.keyboard.isAnyDown([Key.Up, Key.Down, Key.Left, Key.Right])) {
+    if (this.keyboard.isAnyDown([Key.Up, Key.Down, Key.Left, Key.Right])) {
       imgSrcYOffset *= Character.Height * tickOffset + tickOffset + 1;
     }
-    if (this.game.keyboard.isDown(Key.Right)) {
+    if (this.keyboard.isDown(Key.Right)) {
       imgSrcXOffset += Character.Width + 1;
-    } else if (this.game.keyboard.isDown(Key.Left)) {
+    } else if (this.keyboard.isDown(Key.Left)) {
       imgSrcXOffset += Character.Width * 3 + 3;
-    } else if (this.game.keyboard.isDown(Key.Up)) {
+    } else if (this.keyboard.isDown(Key.Up)) {
       imgSrcXOffset += Character.Width * 2 + 2;
     }
-    this.context.drawImage(
+    context.drawImage(
       this.characterImg,
       imgSrcXOffset,
       imgSrcYOffset,
@@ -109,10 +115,10 @@ export class Character {
     );
   }
 
-  private renderShadow() {
-    this.context.beginPath();
-    this.context.fillStyle = 'rgba(0, 0, 0, 0.2)';
-    this.context.ellipse(
+  private renderShadow(context: CanvasRenderingContext2D) {
+    context.beginPath();
+    context.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    context.ellipse(
       this.x - this.camera.x + Character.Width / 2,
       this.y - this.camera.y + Character.Height - 2,
       Character.Width / 2 - 5,
@@ -121,7 +127,7 @@ export class Character {
       0,
       180
     );
-    this.context.fill();
+    context.fill();
   }
 
   private updateCamera() {
@@ -158,16 +164,15 @@ export class Character {
 
     // Tiles character is in
     this.touchingTiles = [];
-    // Wall tiles character cannot pass through
-    this.wallTiles = [];
+    // Tiles character cannot pass through
+    this.outOfBoundsTiles = [];
 
     for (let c = startCol; c < endCol; c++) {
       for (let r = startRow; r < endRow; r++) {
         const tile = TileHelper.getTile(this.tileMap, c, r);
         this.touchingTiles.push(tile);
-        // TODO: create CollisionTile class that inherits from Tile class
-        if (tile.type === TileType.Sea || tile.type === TileType.ShoreR) {
-          this.wallTiles.push(tile);
+        if (tile.outOfBounds) {
+          this.outOfBoundsTiles.push(tile);
         }
       }
     }
@@ -175,7 +180,7 @@ export class Character {
     let collides = false;
 
     // AABB collision detection
-    this.wallTiles.forEach((tile) => {
+    this.outOfBoundsTiles.forEach((tile) => {
       let xCollides =
         this.x - this.camera.x < tile.x + TileMap.TSize &&
         this.x - this.camera.x + Character.Width > tile.x;
@@ -188,50 +193,41 @@ export class Character {
     return collides;
   }
 
-  private debug() {
-    this.debugContext.beginPath();
-    this.debugContext.strokeStyle = 'red';
-    this.debugContext.lineWidth = 1;
-    this.debugContext.strokeRect(
+  // TODO: sort out debug layer!
+  private debug(context: CanvasRenderingContext2D) {
+    context.beginPath();
+    context.strokeStyle = 'red';
+    context.lineWidth = 1;
+    context.strokeRect(
       this.x - this.camera.x,
       this.y - this.camera.y,
       Character.Width,
       Character.Height
     );
-    this.debugContext.closePath();
+    context.closePath();
     if (this.touchingTiles && this.touchingTiles.length) {
-      this.debugContext.beginPath();
-      this.debugContext.strokeStyle = 'red';
-      this.debugContext.lineWidth = 1;
+      context.beginPath();
+      context.strokeStyle = 'red';
+      context.lineWidth = 1;
       this.touchingTiles.forEach((tile, index) => {
-        this.debugContext.strokeRect(
-          tile.x,
-          tile.y,
-          TileMap.TSize,
-          TileMap.TSize
-        );
-        this.debugContext.font = '12px sans-serif';
-        this.debugContext.fillStyle = 'red';
-        this.debugContext.fillText(
+        context.strokeRect(tile.x, tile.y, TileMap.TSize, TileMap.TSize);
+        context.font = '12px sans-serif';
+        context.fillStyle = 'red';
+        context.fillText(
           index + '',
           tile.x + TileMap.TSize / 2,
           tile.y + TileMap.TSize / 2
         );
       });
-      this.debugContext.closePath();
+      context.closePath();
     }
-    if (this.wallTiles && this.wallTiles.length) {
-      this.debugContext.beginPath();
-      this.debugContext.fillStyle = 'rgba(255, 0, 0, 0.3)';
-      this.wallTiles.forEach((tile) => {
-        this.debugContext.fillRect(
-          tile.x,
-          tile.y,
-          TileMap.TSize,
-          TileMap.TSize
-        );
+    if (this.outOfBoundsTiles && this.outOfBoundsTiles.length) {
+      context.beginPath();
+      context.fillStyle = 'rgba(255, 0, 0, 0.3)';
+      this.outOfBoundsTiles.forEach((tile) => {
+        context.fillRect(tile.x, tile.y, TileMap.TSize, TileMap.TSize);
       });
-      this.debugContext.closePath();
+      context.closePath();
     }
   }
 }

@@ -1,5 +1,5 @@
 export class Debug {
-  enabled = false;
+  enabled = true;
   constructor() {
     const checkboxEl = document.getElementById(
       'debug-input'
@@ -8,5 +8,8 @@ export class Debug {
       'change',
       (e) => (this.enabled = (<HTMLInputElement>e.target).checked)
     );
+    if (this.enabled) {
+      checkboxEl.setAttribute('checked', this.enabled + '');
+    }
   }
 }

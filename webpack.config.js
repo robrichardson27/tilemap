@@ -19,6 +19,10 @@ module.exports = {
         test: /\.png/,
         type: 'asset/resource',
       },
+      {
+        test: /\.txt$/i,
+        use: 'raw-loader',
+      },
     ],
   },
   resolve: {
