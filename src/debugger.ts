@@ -1,4 +1,5 @@
 import { CanvasLayer } from './canvas';
+import { TileMapExporter } from './editor/tile-map-exporter';
 import { TilePlacer } from './editor/tile-placer';
 import { TileSelector } from './editor/tile-selector';
 import { Game } from './game';
@@ -7,6 +8,7 @@ export class Debugger {
   enabled = true;
 
   private tileSelector: TileSelector;
+  private tileMapExporter: TileMapExporter;
   private debugLayers: CanvasLayer[] = [];
   private game: Game;
 
@@ -23,6 +25,8 @@ export class Debugger {
       })
     );
 
+    this.tileMapExporter = new TileMapExporter(this.game.background);
+
     const checkboxEl = document.getElementById(
       'debug-input'
     ) as HTMLInputElement;
@@ -37,6 +41,12 @@ export class Debugger {
 
   private onChange(e: Event) {
     this.enabled = (<HTMLInputElement>e.target).checked;
-    this.enabled ? this.tileSelector.show() : this.tileSelector.hide();
+    if (this.enabled) {
+      this.tileSelector.show();
+      this.tileMapExporter.show();
+    } else {
+      this.tileSelector.hide();
+      this.tileMapExporter.hide();
+    }
   }
 }

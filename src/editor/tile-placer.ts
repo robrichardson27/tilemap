@@ -20,32 +20,40 @@ export class TilePlacer extends CanvasLayer {
   private y: number = 0;
   private prevCol: number = 0;
   private prevRow: number = 0;
+  private camera: Camera;
 
   constructor(options: TilePlacerOptions) {
     super(options);
     this.tileSelector = options.tileSelector;
     this.gameCanvas = options.canvas.getCanvas();
     this.gameTileMap = options.tileMap;
+    this.camera = options.tileMap.camera as Camera;
+    const cols = options.tileMap.cols;
+    const rows = options.tileMap.rows;
     this.debugTileMap = new TileMap({
       id: 'debug-tile-map',
       hide: false,
       tiles: [],
-      cols: 10,
-      rows: 10,
+      cols: cols,
+      rows: rows,
     });
-    this.debugTileMap.setCamera(
-      new Camera(0, 0, Canvas.Width, Canvas.Height, this.debugTileMap)
-    );
+    this.debugTileMap.setCamera(this.camera as Camera);
     this.gameCanvas.addEventListener('mousedown', this.onMouseDown.bind(this));
     this.gameCanvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+    this.gameCanvas.addEventListener(
+      'mouseleave',
+      this.onMouseLeave.bind(this)
+    );
   }
 
   render(context: CanvasRenderingContext2D) {
-    this.debugTileMap.render(context);
+    if (DEBUG.enabled) {
+      this.debugTileMap.render(context);
+    }
   }
 
   onMouseDown(e: MouseEvent) {
-    if (DEBUG.enabled) {
+    if (DEBUG.enabled && e.button === 0) {
       this.setTileOnMap(e, this.gameTileMap);
     }
   }
@@ -66,11 +74,16 @@ export class TilePlacer extends CanvasLayer {
     }
   }
 
+  onMouseLeave() {
+    this.debugTileMap.setTile(<Tile>{}, this.prevCol, this.prevRow);
+  }
+
   private setTileOnMap(e: MouseEvent, tileMap: TileMap) {
     const rect = this.gameCanvas.getBoundingClientRect();
 
-    this.x = Math.round(e.clientX - rect.left);
-    this.y = Math.round(e.clientY - rect.top);
+    this.x = Math.round(e.clientX - rect.left) + this.camera.x;
+    this.y = Math.round(e.clientY - rect.top) + this.camera.y;
+
     const col = Math.floor(this.x / TileMap.TSize);
     const row = Math.floor(this.y / TileMap.TSize);
 

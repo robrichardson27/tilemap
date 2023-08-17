@@ -1,5 +1,5 @@
 import { Camera } from './camera';
-import { Tile, TileHelper } from './tile';
+import { Tile, TileHelper, TileType } from './tile';
 import tileMapBackgroundJson from '../assets/tile-map-background.json';
 import tileMapPng from '../assets/tile-map.png';
 import { CanvasLayer, CanvasLayerOptions } from './canvas';
@@ -16,13 +16,27 @@ export interface TileMapOptions extends CanvasLayerOptions {
 export class TileMap extends CanvasLayer {
   static TSize = 64;
 
-  static createBackground(): TileMap {
+  static createEmptyTiles(cols: number, rows: number): Tile[] {
+    const tiles: Tile[] = [];
+
+    for (let col = 0; col < cols; col++) {
+      for (let row = 0; row < rows; row++) {
+        tiles.push(<Tile>{ type: TileType.Empty });
+      }
+    }
+
+    return tiles;
+  }
+
+  static createBackground(cols: number, rows: number): TileMap {
+    const tiles = TileMap.createEmptyTiles(cols, rows);
+    tiles.splice(0, tileMapBackgroundJson.length, ...tileMapBackgroundJson);
     return new TileMap({
       id: 'background',
       hide: false,
-      tiles: tileMapBackgroundJson,
-      cols: 10,
-      rows: 10,
+      tiles: tiles,
+      cols: cols,
+      rows: rows,
     });
   }
 

@@ -21,7 +21,7 @@ export class Game {
   constructor() {
     this.canvas = new Canvas('game');
     this.keyboard = new Keyboard([Key.Left, Key.Right, Key.Up, Key.Down]);
-    this.background = TileMap.createBackground();
+    this.background = TileMap.createBackground(10, 10);
     this.camera = new Camera(
       0,
       0,
@@ -34,11 +34,10 @@ export class Game {
     this.character = new Character({
       id: 'character',
       hide: false,
-      x: 0,
-      y: 0,
+      x: 5 * TileMap.TSize,
+      y: 5 * TileMap.TSize,
       camera: this.camera,
       tileMap: this.background,
-      tick: this.tick,
       keyboard: this.keyboard,
     });
 
@@ -80,6 +79,6 @@ export class Game {
     // Clear previous frame
     this.canvas.clear();
     // Rener all canvas layers
-    this.canvas.render();
+    this.canvas.render(this.tick);
   }
 }

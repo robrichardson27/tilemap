@@ -92,12 +92,12 @@ export class TileHelper {
   }
 
   static debug(tileMap: TileMap, tile: Tile) {
-    tileMap.context.beginPath();
-    tileMap.context.lineWidth = 1;
-    tileMap.context.strokeStyle = 'rgba(255, 0, 0, 0.2)';
-    tileMap.context.strokeRect(tile.x, tile.y, TileMap.TSize, TileMap.TSize);
-    tileMap.context.closePath();
     if (tile.type !== undefined) {
+      tileMap.context.beginPath();
+      tileMap.context.lineWidth = 1;
+      tileMap.context.strokeStyle = 'rgba(255, 0, 0, 0.2)';
+      tileMap.context.strokeRect(tile.x, tile.y, TileMap.TSize, TileMap.TSize);
+      tileMap.context.closePath();
       tileMap.context.font = '12px sans-serif';
       tileMap.context.fillStyle = 'purple';
       tileMap.context.fillText(tile.type + '', tile.x, tile.y + 12);

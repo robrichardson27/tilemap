@@ -1,5 +1,5 @@
 export interface Render2D {
-  render(context: CanvasRenderingContext2D): void;
+  render(context: CanvasRenderingContext2D, tick?: number): void;
 }
 
 export interface CanvasLayerOptions {
@@ -10,7 +10,7 @@ export interface CanvasLayerOptions {
 export abstract class CanvasLayer implements Render2D {
   id: string;
   hide: boolean;
-  abstract render(context: CanvasRenderingContext2D): void;
+  abstract render(context: CanvasRenderingContext2D, tick?: number): void;
   constructor(options: CanvasLayerOptions) {
     this.id = options.id;
     this.hide = options.hide;
@@ -64,10 +64,10 @@ export class Canvas {
     this.layers.delete(id);
   }
 
-  render() {
+  render(tick: number) {
     this.layers.forEach((layer) => {
       if (!layer.hide) {
-        layer.render(this.context);
+        layer.render(this.context, tick);
       }
     });
   }

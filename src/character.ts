@@ -11,7 +11,6 @@ export interface CharacterOptions extends CanvasLayerOptions {
   y: number;
   camera: Camera;
   tileMap: TileMap;
-  tick: number;
   keyboard: Keyboard;
 }
 
@@ -36,7 +35,6 @@ export class Character extends CanvasLayer {
   private touchingTiles: Tile[] = [];
   private outOfBoundsTiles: Tile[] = [];
   private characterImg: HTMLImageElement;
-  private tick: number;
   private keyboard: Keyboard;
 
   constructor(options: CharacterOptions) {
@@ -45,14 +43,13 @@ export class Character extends CanvasLayer {
     this.y = options.y;
     this.camera = options.camera;
     this.tileMap = options.tileMap;
-    this.tick = options.tick;
     this.keyboard = options.keyboard;
     this.characterImg = new Image();
     this.characterImg.src = charImgSrc;
   }
 
-  render(context: CanvasRenderingContext2D) {
-    this.renderCharacter(context);
+  render(context: CanvasRenderingContext2D, tick: number) {
+    this.renderCharacter(context, tick);
     this.renderShadow(context);
     if (DEBUG.enabled) {
       this.debug(context);
@@ -88,8 +85,8 @@ export class Character extends CanvasLayer {
     this.clampValues();
   }
 
-  private renderCharacter(context: CanvasRenderingContext2D) {
-    const tickOffset = this.tick % 4;
+  private renderCharacter(context: CanvasRenderingContext2D, tick: number) {
+    const tickOffset = tick % 4;
     let imgSrcXOffset = Character.SrcX;
     let imgSrcYOffset = Character.SrcY;
     if (this.keyboard.isAnyDown([Key.Up, Key.Down, Key.Left, Key.Right])) {

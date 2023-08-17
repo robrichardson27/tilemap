@@ -19,7 +19,7 @@ export class TileSelector {
       swatchEl.src = tileMapPng;
       swatchEl.width = TileMap.TSize;
       swatchEl.height = TileMap.TSize;
-      const styles = `margin-right: 4px; cursor: pointer; object-fit: cover; object-position: -${
+      const styles = `margin-right: 4px; border: solid 2px rgba(0,0,0,0); cursor: pointer; object-fit: cover; object-position: -${
         tile.type * TileMap.TSize
       }px;`;
       swatchEl.style.cssText = styles;
@@ -30,11 +30,11 @@ export class TileSelector {
   }
 
   hide() {
-    this.ui.style.cssText = 'display: none;';
+    this.ui.style.display = 'none';
   }
 
   show() {
-    this.ui.style.cssText = 'display: block;';
+    this.ui.style.display = 'block';
   }
 
   getSelectedTile(): Tile | undefined {
@@ -42,9 +42,18 @@ export class TileSelector {
   }
 
   private onMouseDown(e: MouseEvent) {
+    this.clearSelectedStyle();
     const tileType = parseInt(
       (e.target as HTMLImageElement).getAttribute('data-tile') as string
     );
+    (e.target as HTMLImageElement).style.border = '2px solid red';
+
     this.selectedTile = this.tiles[tileType];
+  }
+
+  private clearSelectedStyle(): void {
+    this.ui.childNodes.forEach((tile) => {
+      (tile as HTMLImageElement).style.border = '2px solid rgba(0,0,0,0)';
+    });
   }
 }
