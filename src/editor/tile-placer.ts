@@ -33,6 +33,7 @@ export class TilePlacer extends CanvasLayer {
     this.debugTileMap = new TileMap({
       id: 'debug-tile-map',
       hide: false,
+      layer: 0,
       tiles: [],
       cols: cols,
       rows: rows,

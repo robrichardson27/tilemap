@@ -19,6 +19,7 @@ export class Debugger {
       new TilePlacer({
         id: 'tile-placer',
         hide: !this.enabled,
+        layer: 0,
         tileSelector: this.tileSelector,
         canvas: this.game.canvas,
         tileMap: this.game.background,

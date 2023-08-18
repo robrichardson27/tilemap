@@ -1,4 +1,3 @@
-import { Character } from './character';
 import { TileMap } from './tile-map';
 
 /**
@@ -27,10 +26,10 @@ export class Camera {
     this.maxY = tileMap.rows * TileMap.TSize - height;
   }
 
-  update(dirX: number, dirY: number) {
+  update(dirX: number, dirY: number, speed: number) {
     // Move camera
-    this.x += dirX * Character.Speed;
-    this.y += dirY * Character.Speed;
+    this.x += dirX * speed;
+    this.y += dirY * speed;
     // Clamp values
     this.x = Math.max(0, Math.min(this.x, this.maxX));
     this.y = Math.max(0, Math.min(this.y, this.maxY));

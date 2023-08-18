@@ -5,6 +5,10 @@ export interface Render2D {
 export interface CanvasLayerOptions {
   id: string;
   hide: boolean;
+  /**
+   * Layer order 0 = top
+   */
+  layer: number;
 }
 
 export abstract class CanvasLayer implements Render2D {

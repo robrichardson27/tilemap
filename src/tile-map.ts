@@ -28,12 +28,15 @@ export class TileMap extends CanvasLayer {
     return tiles;
   }
 
+  // Move to separate file!
+  static BackgroundId = 'background';
   static createBackground(cols: number, rows: number): TileMap {
     const tiles = TileMap.createEmptyTiles(cols, rows);
     tiles.splice(0, tileMapBackgroundJson.length, ...tileMapBackgroundJson);
     return new TileMap({
-      id: 'background',
+      id: TileMap.BackgroundId,
       hide: false,
+      layer: 999,
       tiles: tiles,
       cols: cols,
       rows: rows,
