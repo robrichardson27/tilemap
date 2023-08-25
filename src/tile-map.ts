@@ -13,7 +13,7 @@ export interface TileMapOptions extends CanvasLayerOptions {
 /**
  * TileMap holds enum for tile types and helper to get a tile
  */
-export class TileMap extends CanvasLayer {
+export class TileMap implements CanvasLayer {
   static TSize = 64;
 
   static createEmptyTiles(cols: number, rows: number): Tile[] {
@@ -43,6 +43,9 @@ export class TileMap extends CanvasLayer {
     });
   }
 
+  id: string;
+  hide: boolean;
+  layer: number;
   tiles: Tile[];
   cols: number;
   rows: number;
@@ -58,7 +61,9 @@ export class TileMap extends CanvasLayer {
   context!: CanvasRenderingContext2D;
 
   constructor(options: TileMapOptions) {
-    super(options);
+    this.id = options.id;
+    this.hide = options.hide;
+    this.layer = options.layer;
     this.tiles = options.tiles;
     this.cols = options.cols;
     this.rows = options.rows;
@@ -95,5 +100,9 @@ export class TileMap extends CanvasLayer {
         }
       }
     }
+  }
+
+  debug(): void {
+    // Not implemented
   }
 }

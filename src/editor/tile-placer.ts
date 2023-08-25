@@ -11,7 +11,11 @@ export interface TilePlacerOptions extends CanvasLayerOptions {
   tileMap: TileMap;
 }
 
-export class TilePlacer extends CanvasLayer {
+export class TilePlacer implements CanvasLayer {
+  id: string;
+  hide: boolean;
+  layer: number;
+
   private tileSelector: TileSelector;
   private gameCanvas: HTMLCanvasElement;
   private gameTileMap: TileMap;
@@ -23,7 +27,9 @@ export class TilePlacer extends CanvasLayer {
   private camera: Camera;
 
   constructor(options: TilePlacerOptions) {
-    super(options);
+    this.id = options.id;
+    this.hide = options.hide;
+    this.layer = options.layer;
     this.tileSelector = options.tileSelector;
     this.gameCanvas = options.canvas.getCanvas();
     this.gameTileMap = options.tileMap;
@@ -93,5 +99,9 @@ export class TilePlacer extends CanvasLayer {
     if (tile) {
       tileMap.setTile(tile, col, row);
     }
+  }
+
+  debug(): void {
+    // Not implemented
   }
 }

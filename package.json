@@ -9,6 +9,7 @@
     "build": "webpack --mode production"
   },
   "dependencies": {
+    "rxjs": "^7.8.1",
     "typescript": "^5.1.6"
   },
   "devDependencies": {

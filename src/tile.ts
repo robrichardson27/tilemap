@@ -1,5 +1,6 @@
 import { DEBUG } from './app';
 import { TileMap } from './tile-map';
+import { Rectangle } from './utils';
 
 export enum TileType {
   Empty = -1,
@@ -35,7 +36,7 @@ export enum TileType {
   GrassBlades = 29,
 }
 
-export interface Tile {
+export interface TileOptions {
   srcX: number;
   srcY: number;
   srcWidth: number;
@@ -48,6 +49,25 @@ export interface Tile {
   outOfBounds: boolean;
 }
 
+export class Tile extends Rectangle {
+  srcX: number;
+  srcY: number;
+  srcWidth: number;
+  srcHeight: number;
+  type: TileType;
+  outOfBounds: boolean;
+
+  constructor(options: TileOptions) {
+    super(options.x, options.y, options.width, options.height);
+    this.srcX = options.srcX;
+    this.srcY = options.srcY;
+    this.srcWidth = options.srcWidth;
+    this.srcHeight = options.srcHeight;
+    this.type = options.type;
+    this.outOfBounds = options.outOfBounds;
+  }
+}
+
 /**
  * Gets and renders a single tile to canvas context
  */
@@ -55,7 +75,7 @@ export class TileHelper {
   static getTile(tileMap: TileMap, col: number, row: number): Tile {
     const tile = tileMap.tiles[row * tileMap.cols + col];
     if (tile) {
-      return {
+      return new Tile({
         srcX: tile.type * TileMap.TSize,
         srcY: 0,
         srcWidth: TileMap.TSize,
@@ -70,7 +90,7 @@ export class TileHelper {
         height: TileMap.TSize,
         type: tile.type,
         outOfBounds: tile.outOfBounds,
-      };
+      });
     }
     return <Tile>{};
   }

@@ -1,7 +1,16 @@
 import { Camera } from '../camera';
-import { CanvasLayer, CanvasLayerOptions } from '../canvas';
+import { Canvas, CanvasLayer, CanvasLayerOptions } from '../canvas';
+import { Keyboard } from '../keyboard';
+import { Tile, TileHelper } from '../tile';
 import { TileMap } from '../tile-map';
-import { Point, Rectangle } from '../utils';
+import {
+  Rectangle,
+  RgbArray,
+  Vector,
+  rgbArrayOpacity,
+  rgbArrayToString,
+} from '../utils';
+import { aabbCollision } from './collision';
 
 export interface GameObjectOptions extends CanvasLayerOptions {
   /**
@@ -45,58 +54,185 @@ export interface GameObjectOptions extends CanvasLayerOptions {
    */
   background: TileMap;
   /**
+   * Various stats
+   */
+  stats: GameObjectStats;
+}
+
+/**
+ * Various properties - need to refactor to use ECS
+ */
+export interface GameObjectStats {
+  /**
    * Speed multiplyer
    */
   speed: number;
+  /**
+   * Health
+   */
+  health: number;
+  /**
+   * Amount of damage this object can inflict to health
+   */
+  attackPower: number;
+  /**
+   * Frequency of damage this object can inflict to health 100s ms
+   */
+  attackSpeed: number;
 }
+
+export type GameObjects = Map<string, GameObject>;
 
 export interface GameObjectUpdateArguments {
-  gameObjects?: Map<string, GameObject>;
-  dirX?: number;
-  dirY?: number;
+  gameObjects: GameObjects;
+  keyboard: Keyboard;
+  tick: number;
 }
 
-export abstract class GameObject extends CanvasLayer {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+export abstract class GameObject extends Rectangle implements CanvasLayer {
+  id: string;
+  hide: boolean;
+  layer: number;
   srcX: number;
   srcY: number;
-  center!: Point;
-  boundingRect!: Rectangle;
   img: HTMLImageElement;
   background: TileMap;
-  speed: number;
+  dirX: number = 0;
+  dirY: number = 0;
+  debugColor: RgbArray = [255, 0, 0];
+  vector: Vector;
+  stats: GameObjectStats;
 
   protected camera: Camera;
 
+  private touchingTiles: Tile[] = [];
+  private outOfBoundsTiles: Tile[] = [];
+
   constructor(options: GameObjectOptions) {
-    super(options);
-    this.x = options.x;
-    this.y = options.y;
-    this.width = options.width;
-    this.height = options.height;
+    super(options.x, options.y, options.width, options.height);
+    this.id = options.id;
+    this.hide = options.hide;
+    this.layer = options.layer;
     this.srcX = options.srcX;
     this.srcY = options.srcY;
     this.camera = options.camera;
     this.img = new Image();
     this.img.src = options.imgSrc;
     this.background = options.background;
-    this.speed = options.speed;
-    this.updateCenterPoint();
+    this.stats = options.stats;
+    this.vector = new Vector(this.center, this.center);
   }
 
+  abstract render(
+    context: CanvasRenderingContext2D,
+    tick?: number | undefined
+  ): void;
   abstract update(args: GameObjectUpdateArguments): void;
 
-  updateCenterPoint() {
-    this.center = {
-      x: this.x + Math.floor(this.width / 2),
-      y: this.y + Math.floor(this.height / 2),
-    };
+  /**
+   * Move the game object and detect collision with background tiles
+   */
+  protected move() {
+    // Store previous position
+    const prev = new Rectangle(this.x, this.y, this.width, this.height);
+    // Move character x
+    this.x += this.dirX * this.stats.speed;
+    // Detect collision
+    let collides = this.collisionDetection();
+    // React to collision
+    if (collides) {
+      this.x = prev.x;
+    }
+    // Move character y
+    this.y += this.dirY * this.stats.speed;
+    // Detect collision
+    collides = this.collisionDetection();
+    // React to collision
+    if (collides) {
+      this.y = prev.y;
+    }
+    // Store movement vector
+    this.vector = new Vector(prev.center, this.center);
   }
 
-  updateBoundingRect() {
-    this.boundingRect = new Rectangle(this.x, this.y, this.width, this.height);
+  protected clampValues() {
+    this.x = Math.max(
+      0,
+      Math.min(this.x, Canvas.Width - this.width + this.camera.x)
+    );
+    this.y = Math.max(
+      0,
+      Math.min(this.y, Canvas.Height - this.height + this.camera.y)
+    );
+  }
+
+  private collisionDetection(): boolean {
+    const startCol = Math.floor(this.x / TileMap.TSize);
+    const endCol = Math.ceil((this.x + this.width) / TileMap.TSize);
+    const startRow = Math.floor(this.y / TileMap.TSize);
+    const endRow = Math.ceil((this.y + this.height) / TileMap.TSize);
+
+    // Tiles character is in
+    this.touchingTiles = [];
+    // Tiles character cannot pass through
+    this.outOfBoundsTiles = [];
+
+    for (let c = startCol; c < endCol; c++) {
+      for (let r = startRow; r < endRow; r++) {
+        const tile = TileHelper.getTile(this.background, c, r);
+        this.touchingTiles.push(tile);
+        if (tile.outOfBounds) {
+          this.outOfBoundsTiles.push(tile);
+        }
+      }
+    }
+
+    let collides = false;
+
+    // AABB collision detection
+    this.outOfBoundsTiles.forEach((tile) => {
+      collides = aabbCollision(this, tile, this.camera);
+    });
+
+    return collides;
+  }
+
+  debug(context: CanvasRenderingContext2D) {
+    context.beginPath();
+    context.strokeStyle = rgbArrayToString(this.debugColor);
+    context.lineWidth = 1;
+    context.strokeRect(
+      this.x - this.camera.x,
+      this.y - this.camera.y,
+      this.width,
+      this.height
+    );
+    context.closePath();
+    if (this.touchingTiles && this.touchingTiles.length) {
+      context.beginPath();
+      context.strokeStyle = rgbArrayToString(this.debugColor);
+      context.lineWidth = 1;
+      this.touchingTiles.forEach((tile, index) => {
+        context.strokeRect(tile.x, tile.y, TileMap.TSize, TileMap.TSize);
+        context.font = '12px sans-serif';
+        context.fillStyle = rgbArrayToString(this.debugColor);
+        context.fillText(
+          index + '',
+          tile.x + TileMap.TSize / 2,
+          tile.y + TileMap.TSize / 2
+        );
+      });
+      context.closePath();
+    }
+    if (this.outOfBoundsTiles && this.outOfBoundsTiles.length) {
+      context.beginPath();
+      context.fillStyle = rgbArrayToString(
+        rgbArrayOpacity(this.debugColor, 0.3)
+      );
+      this.outOfBoundsTiles.forEach((tile) => {
+        context.fillRect(tile.x, tile.y, TileMap.TSize, TileMap.TSize);
+      });
+      context.closePath();
+    }
   }
 }

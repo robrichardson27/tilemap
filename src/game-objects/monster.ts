@@ -1,71 +1,77 @@
-import { DEBUG } from '../app';
 import { TileMap } from '../tile-map';
 import { Player } from './player';
-import { Circle, Point, circleInRectangle, degToRad } from '../utils';
+import { Circle, degToRad, rgbArrayOpacity, rgbArrayToString } from '../utils';
 import {
   GameObject,
   GameObjectOptions,
   GameObjectUpdateArguments,
 } from './game-object';
-import { Camera } from '../camera';
-import blobImgSrc from '../../assets/blob.png';
+import { aabbCollision, circleInRectangle } from './collision';
 
-export class Monster extends GameObject {
+export abstract class Monster extends GameObject {
   detectionRadius = 100;
   detectionCircle!: Circle;
 
   private characterDetected = false;
 
-  // TODO: move to blob class
-  static BlobId = 'blob';
-  /**
-   * Create a blob monster
-   */
-  static createBlob(
-    id: string,
-    start: Point,
-    camera: Camera,
-    background: TileMap
-  ): Monster {
-    const monster = new Monster({
-      id: id,
-      hide: false,
-      layer: 1,
-      x: start.x,
-      y: start.y,
-      width: 28,
-      height: 36,
-      srcX: 18,
-      srcY: 9,
-      camera: camera,
-      imgSrc: blobImgSrc,
-      background: background,
-      speed: 1,
-    });
-    return monster;
-  }
-
   constructor(options: GameObjectOptions) {
     super(options);
     this.setDetectionCircle();
+    this.debugColor = [0, 128, 0];
   }
 
   update(args: GameObjectUpdateArguments) {
     if (args.gameObjects) {
       const player = args.gameObjects.get(Player.PlayerId);
       if (player) {
-        this.move(player);
+        // Move monster if player detected
+        this.detectPlayer(player);
+        // Collision detection with background tiles
+        this.move();
+        // Collision detection with other game objects
+        this.gameObjectsCollisionDetection(args);
+        // Clamp values so they don't extend grid
+        this.clampValues();
       }
     }
-    this.updateCenterPoint();
     this.setDetectionCircle();
   }
 
   render(context: CanvasRenderingContext2D, tick: number) {
     this.renderMonster(context, tick);
     this.renderShadow(context);
-    if (DEBUG.enabled) {
-      this.debug(context);
+  }
+
+  private doDamage = false;
+
+  private gameObjectsCollisionDetection(args: GameObjectUpdateArguments) {
+    args.gameObjects.forEach((object) => {
+      // Skip self
+      if (object.id === this.id) {
+        return;
+      }
+      // Detect if object collides with another
+      const collides = aabbCollision(this, object);
+      if (collides) {
+        if (object.id === Player.PlayerId) {
+          // Reduce player health on collision
+          this.attackPlayer(object as Player, args.tick);
+        } else {
+          // Move monster by simply reversing the vector
+          this.x += -this.vector.x;
+          this.y += -this.vector.y;
+        }
+      }
+    });
+  }
+
+  private attackPlayer(player: Player, tick: number) {
+    const freq = tick % this.stats.attackSpeed;
+    if (freq === 0 && this.doDamage) {
+      this.doDamage = false;
+      player.stats.health -= this.stats.attackPower;
+    } else if (freq !== 0) {
+      this.doDamage = true;
     }
   }
 
@@ -73,22 +79,20 @@ export class Monster extends GameObject {
     this.detectionCircle = new Circle(this.center, this.detectionRadius);
   }
 
-  private move(player: GameObject) {
+  private detectPlayer(player: GameObject) {
     // Is player within detection radius?
-    this.characterDetected = circleInRectangle(
-      this.detectionCircle,
-      player.boundingRect
-    );
+    this.characterDetected = circleInRectangle(this.detectionCircle, player);
+    this.dirX = this.dirY = 0;
     if (this.characterDetected) {
-      if (this.x < player.x - player.width) {
-        this.x += 1;
-      } else if (this.x > player.x + player.width) {
-        this.x -= 1;
+      if (this.x <= player.x - this.width) {
+        this.dirX += 1;
+      } else if (this.x >= player.x + player.width) {
+        this.dirX -= 1;
       }
-      if (this.y < player.y - player.height) {
-        this.y += 1;
-      } else if (this.y > player.y + player.height) {
-        this.y -= 1;
+      if (this.y <= player.y - this.height) {
+        this.dirY += 1;
+      } else if (this.y >= player.y + player.height) {
+        this.dirY -= 1;
       }
     }
   }
@@ -124,16 +128,9 @@ export class Monster extends GameObject {
     context.fill();
   }
 
-  private debug(context: CanvasRenderingContext2D) {
+  override debug(context: CanvasRenderingContext2D): void {
+    super.debug(context);
     context.beginPath();
-    context.strokeStyle = 'green';
-    context.lineWidth = 1;
-    context.strokeRect(
-      this.x - this.camera.x,
-      this.y - this.camera.y,
-      this.width,
-      this.height
-    );
     context.arc(
       this.center.x - this.camera.x,
       this.center.y - this.camera.y,
@@ -143,8 +140,22 @@ export class Monster extends GameObject {
     );
     context.stroke();
     if (this.characterDetected) {
-      context.fillStyle = 'rgba(0, 128, 0, 0.2)';
+      context.fillStyle = rgbArrayToString(
+        rgbArrayOpacity(this.debugColor, 0.2)
+      );
       context.fill();
+    }
+    if (this.vector) {
+      context.beginPath();
+      context.moveTo(
+        this.center.x - this.camera.x,
+        this.center.y - this.camera.y
+      );
+      context.lineTo(
+        this.center.x - this.camera.x + this.vector.x * 50,
+        this.center.y - this.camera.y + this.vector.y * 50
+      );
+      context.stroke();
     }
   }
 }

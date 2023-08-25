@@ -1,6 +1,4 @@
-export interface Render2D {
-  render(context: CanvasRenderingContext2D, tick?: number): void;
-}
+import { DEBUG } from './app';
 
 export interface CanvasLayerOptions {
   id: string;
@@ -11,14 +9,12 @@ export interface CanvasLayerOptions {
   layer: number;
 }
 
-export abstract class CanvasLayer implements Render2D {
+export interface CanvasLayer {
   id: string;
   hide: boolean;
-  abstract render(context: CanvasRenderingContext2D, tick?: number): void;
-  constructor(options: CanvasLayerOptions) {
-    this.id = options.id;
-    this.hide = options.hide;
-  }
+  layer: number;
+  render(context: CanvasRenderingContext2D, tick?: number): void;
+  debug(context: CanvasRenderingContext2D): void;
 }
 
 /**
@@ -52,7 +48,8 @@ export class Canvas {
   }
 
   getLayers(): CanvasLayer[] {
-    return Array.from(this.layers.values());
+    // TODO: Refactor this, not efficient to sort on every render!
+    return Array.from(this.layers.values()).sort((a, b) => b.layer - a.layer);
   }
 
   addLayer(layer: CanvasLayer): Canvas {
@@ -69,9 +66,12 @@ export class Canvas {
   }
 
   render(tick: number) {
-    this.layers.forEach((layer) => {
+    this.getLayers().forEach((layer) => {
       if (!layer.hide) {
         layer.render(this.context, tick);
+        if (DEBUG.enabled) {
+          layer.debug(this.context);
+        }
       }
     });
   }
