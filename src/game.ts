@@ -7,6 +7,7 @@ import { GameObject, GameObjects } from './game-objects/game-object';
 import { BlobMonster } from './game-objects/blob-monster';
 import { DEBUG } from './app';
 import { PlayerUi } from './player-ui';
+import { Mouse } from './mouse';
 
 /**
  * Main game class, creates game objects
@@ -18,12 +19,14 @@ export class Game {
   canvas: Canvas;
   background: TileMap;
   keyboard: Keyboard;
+  mouse: Mouse;
   gameObjects: GameObjects = new Map<string, GameObject>();
   tick: number = 0;
 
   constructor() {
     this.canvas = new Canvas('game');
     this.keyboard = new Keyboard([Key.Left, Key.Right, Key.Up, Key.Down]);
+    this.mouse = new Mouse(this.canvas.getCanvas());
     this.background = TileMap.createBackground(10, 10);
     const camera = new Camera(
       0,
@@ -36,11 +39,12 @@ export class Game {
     this.canvas.addLayer(this.background);
 
     // Create and add player to game objects
-    const player = new Player(
-      { x: 5 * TileMap.TSize, y: 5 * TileMap.TSize },
-      camera,
-      this.background
-    );
+    const player = new Player({
+      start: { x: 5 * TileMap.TSize, y: 5 * TileMap.TSize },
+      camera: camera,
+      background: this.background,
+      mouse: this.mouse,
+    });
     this.gameObjects.set(player.id, player);
 
     // Create and add player ui to canvas

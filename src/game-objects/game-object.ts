@@ -35,12 +35,12 @@ export interface GameObjectOptions extends CanvasLayerOptions {
    * The x-axis coordinate of the top left corner of the sub-rectangle
    * of the source image to draw into the destination context
    */
-  srcX: number;
+  srcX?: number;
   /**
    * The y-axis coordinate of the top left corner of the sub-rectangle
    * of the source image to draw into the destination context
    */
-  srcY: number;
+  srcY?: number;
   /**
    * Current game camera object
    */
@@ -48,7 +48,7 @@ export interface GameObjectOptions extends CanvasLayerOptions {
   /**
    * Source sprite image use `.png`
    */
-  imgSrc: any;
+  imgSrc?: string;
   /**
    * Used for collision detection with environment
    */
@@ -93,9 +93,6 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
   id: string;
   hide: boolean;
   layer: number;
-  srcX: number;
-  srcY: number;
-  img: HTMLImageElement;
   background: TileMap;
   dirX: number = 0;
   dirY: number = 0;
@@ -113,11 +110,7 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
     this.id = options.id;
     this.hide = options.hide;
     this.layer = options.layer;
-    this.srcX = options.srcX;
-    this.srcY = options.srcY;
     this.camera = options.camera;
-    this.img = new Image();
-    this.img.src = options.imgSrc;
     this.background = options.background;
     this.stats = options.stats;
     this.vector = new Vector(this.center, this.center);

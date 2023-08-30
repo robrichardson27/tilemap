@@ -13,9 +13,16 @@ export abstract class Monster extends GameObject {
   detectionCircle!: Circle;
 
   private characterDetected = false;
+  private img: HTMLImageElement;
+  srcX: number;
+  srcY: number;
 
   constructor(options: GameObjectOptions) {
     super(options);
+    this.img = new Image();
+    this.img.src = options.imgSrc as string;
+    this.srcX = options.srcX as number;
+    this.srcY = options.srcY as number;
     this.setDetectionCircle();
     this.debugColor = [0, 128, 0];
   }
