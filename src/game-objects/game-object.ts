@@ -87,6 +87,7 @@ export interface GameObjectUpdateArguments {
   gameObjects: GameObjects;
   keyboard: Keyboard;
   tick: number;
+  canvas: Canvas;
 }
 
 export abstract class GameObject extends Rectangle implements CanvasLayer {
@@ -99,6 +100,7 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
   debugColor: RgbArray = [255, 0, 0];
   vector: Vector;
   stats: GameObjectStats;
+  prev!: Rectangle;
 
   protected camera: Camera;
 
@@ -127,14 +129,14 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
    */
   protected move() {
     // Store previous position
-    const prev = new Rectangle(this.x, this.y, this.width, this.height);
+    this.prev = new Rectangle(this.x, this.y, this.width, this.height);
     // Move character x
     this.x += this.dirX * this.stats.speed;
     // Detect collision
     let collides = this.collisionDetection();
     // React to collision
     if (collides) {
-      this.x = prev.x;
+      this.x = this.prev.x;
     }
     // Move character y
     this.y += this.dirY * this.stats.speed;
@@ -142,10 +144,10 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
     collides = this.collisionDetection();
     // React to collision
     if (collides) {
-      this.y = prev.y;
+      this.y = this.prev.y;
     }
     // Store movement vector
-    this.vector = new Vector(prev.center, this.center);
+    this.vector = new Vector(this.prev.center, this.center);
   }
 
   protected clampValues() {

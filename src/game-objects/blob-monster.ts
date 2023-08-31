@@ -27,7 +27,7 @@ export class BlobMonster extends Monster {
       background: background,
       stats: {
         speed: 1,
-        health: 5,
+        health: 10,
         attackPower: 0.5,
         attackSpeed: 20,
       },

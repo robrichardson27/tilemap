@@ -1,20 +1,19 @@
 import { Canvas } from '../canvas';
 import { TileMap } from '../tile-map';
 import { GameObject, GameObjectUpdateArguments } from './game-object';
-import { Point } from '../utils';
+import { Point, Rectangle, rgbArrayToString } from '../utils';
 import { Camera } from '../camera';
 import { Key } from '../keyboard';
 import { Mouse } from '../mouse';
 import { AnimationController } from '../animation-controller';
-import idleImgSrc from '../../assets/player-idle.png';
-import walkDownImgSrc from '../../assets/player-walk-down.png';
-import walkRightImgSrc from '../../assets/player-walk-right.png';
-import walkLeftImgSrc from '../../assets/player-walk-left.png';
-import walkUpImgSrc from '../../assets/player-walk-up.png';
-import attackDownImgSrc from '../../assets/player-attack-down.png';
-import attackUpImgSrc from '../../assets/player-attack-up.png';
-import attackLeftImgSrc from '../../assets/player-attack-left.png';
-import attackRightImgSrc from '../../assets/player-attack-right.png';
+import { PlayerAnimations } from './player-animations';
+import {
+  attackDown,
+  attackLeft,
+  attackRight,
+  attackUp,
+} from './player-attacks';
+import { aabbCollision } from './collision';
 
 export interface PlayerOptions {
   start: Point;
@@ -31,86 +30,17 @@ export class Player extends GameObject {
   static FarEdgeDistFactor = 0.75;
   static NearEdgeDistFactor = 0.25;
 
+  attackingRect = new Rectangle(0, 0, 0, 0);
+
   private get isWalking(): boolean {
     return this.dirX !== 0 || this.dirY !== 0;
   }
 
   private isAttacking = false;
 
-  private defaultSpriteOptions = { width: 128, height: 128 };
-  private walkSpriteOptions = {
-    duration: 4,
-    srcX: 23,
-    srcY: 28,
-    speed: 10,
-    offsetX: -24,
-    offsetY: -3,
-  };
-  private idle = new AnimationController({
-    srcImg: idleImgSrc,
-    ...this.defaultSpriteOptions,
-    ...this.walkSpriteOptions,
-  });
-  private walkDown = new AnimationController({
-    srcImg: walkDownImgSrc,
-    ...this.defaultSpriteOptions,
-    ...this.walkSpriteOptions,
-  });
-  private walkRight = new AnimationController({
-    srcImg: walkRightImgSrc,
-    ...this.defaultSpriteOptions,
-    ...this.walkSpriteOptions,
-  });
-  private walkLeft = new AnimationController({
-    srcImg: walkLeftImgSrc,
-    ...this.defaultSpriteOptions,
-    ...this.walkSpriteOptions,
-  });
-  private walkUp = new AnimationController({
-    srcImg: walkUpImgSrc,
-    ...this.defaultSpriteOptions,
-    ...this.walkSpriteOptions,
-  });
-  private attackSpriteOptions = {
-    duration: 5,
-    speed: 5,
-  };
-  private attackDown = new AnimationController({
-    srcImg: attackDownImgSrc,
-    srcX: 28,
-    srcY: 23,
-    offsetX: -19,
-    offsetY: -8,
-    ...this.defaultSpriteOptions,
-    ...this.attackSpriteOptions,
-  });
-  private attackUp = new AnimationController({
-    srcImg: attackUpImgSrc,
-    srcX: 24,
-    srcY: 0,
-    offsetX: -24,
-    offsetY: -31,
-    ...this.defaultSpriteOptions,
-    ...this.attackSpriteOptions,
-  });
-  private attackLeft = new AnimationController({
-    srcImg: attackLeftImgSrc,
-    srcX: 7,
-    srcY: 3,
-    offsetX: -41,
-    offsetY: -28,
-    ...this.defaultSpriteOptions,
-    ...this.attackSpriteOptions,
-  });
-  private attackRight = new AnimationController({
-    srcImg: attackRightImgSrc,
-    srcX: 24,
-    srcY: 1,
-    offsetX: -24,
-    offsetY: -30,
-    ...this.defaultSpriteOptions,
-    ...this.attackSpriteOptions,
-  });
+  private playerAnimations = new PlayerAnimations();
+  private currentWalkAnimation!: AnimationController;
+  private currentAttackAnimation!: AnimationController;
 
   constructor(options: PlayerOptions) {
     super({
@@ -127,13 +57,26 @@ export class Player extends GameObject {
         speed: 2,
         health: 3,
         attackPower: 1,
-        attackSpeed: 10,
+        // Not used
+        attackSpeed: 0,
       },
     });
     this.debugColor = [255, 0, 0];
-    options.mouse.click$.subscribe(() => {
-      this.attack();
-    });
+    this.initMouseListener(options.mouse);
+  }
+
+  override debug(context: CanvasRenderingContext2D) {
+    super.debug(context);
+    context.beginPath();
+    context.strokeStyle = rgbArrayToString([0, 0, 0]);
+    context.lineWidth = 1;
+    context.strokeRect(
+      this.attackingRect.x - this.camera.x,
+      this.attackingRect.y - this.camera.y,
+      this.attackingRect.width,
+      this.attackingRect.height
+    );
+    context.closePath();
   }
 
   render(context: CanvasRenderingContext2D) {
@@ -141,31 +84,115 @@ export class Player extends GameObject {
     this.renderShadow(context);
   }
 
+  // TODO: add attacking bounding box and collision logic
+  // TODO: prevent character walkign through monster
+  // TODO: on attack knock back monster?
+  // TODO: show damage taken
   update(args: GameObjectUpdateArguments) {
+    // Reset directions
     this.dirX = this.dirY = 0;
-    // Update direction based on keys selected
-    if (args.keyboard.isDown(Key.Left)) {
-      this.dirX = -1;
-    }
-    if (args.keyboard.isDown(Key.Right)) {
-      this.dirX = 1;
-    }
+    // UP
     if (args.keyboard.isDown(Key.Up)) {
       this.dirY = -1;
+      this.currentWalkAnimation = this.playerAnimations.walkUp;
+      this.currentAttackAnimation = this.playerAnimations.attackUp;
+      if (this.isAttacking) {
+        this.attackingRect = attackUp(
+          this.currentAttackAnimation.currentFrame,
+          this.center
+        );
+      }
     }
+    // DOWN
     if (args.keyboard.isDown(Key.Down)) {
       this.dirY = 1;
+      this.currentWalkAnimation = this.playerAnimations.walkDown;
+      this.currentAttackAnimation = this.playerAnimations.attackDown;
+      if (this.isAttacking) {
+        this.attackingRect = attackDown(
+          this.currentAttackAnimation.currentFrame,
+          this.center
+        );
+      }
     }
+    // LEFT
+    if (args.keyboard.isDown(Key.Left)) {
+      this.dirX = -1;
+      this.currentWalkAnimation = this.playerAnimations.walkLeft;
+      this.currentAttackAnimation = this.playerAnimations.attackLeft;
+      if (this.isAttacking) {
+        this.attackingRect = attackLeft(
+          this.currentAttackAnimation.currentFrame,
+          this.center
+        );
+      }
+    }
+    // RIGHT
+    if (args.keyboard.isDown(Key.Right)) {
+      this.dirX = 1;
+      this.currentWalkAnimation = this.playerAnimations.walkRight;
+      this.currentAttackAnimation = this.playerAnimations.attackRight;
+      if (this.isAttacking) {
+        this.attackingRect = attackRight(
+          this.currentAttackAnimation.currentFrame,
+          this.center
+        );
+      }
+    }
+    // Handle idle attack
+    if (!this.isWalking) {
+      this.currentAttackAnimation = this.playerAnimations.attackDown;
+      if (this.isAttacking) {
+        this.attackingRect = attackDown(
+          this.currentAttackAnimation.currentFrame,
+          this.center
+        );
+      }
+    }
+    // Remove attacking rect
+    if (!this.isAttacking) {
+      this.attackingRect = new Rectangle(0, 0, 0, 0);
+    }
+    // Move character, includes background collision
     this.move();
+    // Collision detection with other game objects
+    this.gameObjectsCollisionDetection(args);
     // Update camera when character is near edge
     this.updateCamera();
     // Clamp values so they don't extend grid
     this.clampValues();
-    // TODO: add attacking bounding box and collision logic
   }
 
-  private attack() {
-    this.isAttacking = true;
+  private gameObjectsCollisionDetection(args: GameObjectUpdateArguments) {
+    args.gameObjects.forEach((object) => {
+      // Skip self
+      if (object.id === this.id) {
+        return;
+      }
+      // Detect if player collides with another
+      const collides = aabbCollision(this, object);
+      if (collides) {
+        // Move to prev position
+        // TODO: fix sticky behaviour?
+        this.x = this.prev.x;
+        this.y = this.prev.y;
+        object.x += -object.vector.x;
+        object.y += -object.vector.y;
+      }
+      const attack = aabbCollision(this.attackingRect, object);
+      if (attack) {
+        console.log('Hit');
+        object.x += -object.vector.x * 20;
+        object.y += -object.vector.y * 20;
+        object.stats.health -= this.stats.attackPower;
+        console.log(object.stats.health);
+        if (object.stats.health < 0) {
+          // Should abstract this away
+          args.gameObjects.delete(object.id);
+          args.canvas.removeLayer(object.id);
+        }
+      }
+    });
   }
 
   private renderCharacter(context: CanvasRenderingContext2D) {
@@ -174,47 +201,11 @@ export class Player extends GameObject {
       y: this.y - this.camera.y,
     };
     if (this.isAttacking) {
-      this.renderAttackAnimation(context, pos);
+      this.isAttacking = !this.currentAttackAnimation.render(context, pos);
     } else if (this.isWalking) {
-      this.renderWalkAnimation(context, pos);
+      this.currentWalkAnimation.render(context, pos);
     } else {
-      this.renderIdleAnimation(context, pos);
-    }
-  }
-
-  private renderIdleAnimation(context: CanvasRenderingContext2D, pos: Point) {
-    this.idle.render(context, pos);
-  }
-
-  private renderWalkAnimation(context: CanvasRenderingContext2D, pos: Point) {
-    let animation = this.walkDown;
-
-    if (this.dirX === 1) {
-      animation = this.walkRight;
-    } else if (this.dirX === -1) {
-      animation = this.walkLeft;
-    } else if (this.dirY === -1) {
-      animation = this.walkUp;
-    }
-
-    animation.render(context, pos);
-  }
-
-  private renderAttackAnimation(context: CanvasRenderingContext2D, pos: Point) {
-    let animation = this.attackDown;
-
-    if (this.dirX === 1) {
-      animation = this.attackRight;
-    } else if (this.dirX === -1) {
-      animation = this.attackLeft;
-    } else if (this.dirY === -1) {
-      animation = this.attackUp;
-    }
-
-    const finished = animation.render(context, pos);
-
-    if (finished) {
-      this.isAttacking = false;
+      this.playerAnimations.idle.render(context, pos);
     }
   }
 
@@ -252,5 +243,11 @@ export class Player extends GameObject {
     if (this.y - this.camera.y < Canvas.Height * Player.NearEdgeDistFactor) {
       this.camera.update(0, -1, this.stats.speed);
     }
+  }
+
+  private initMouseListener(mouse: Mouse) {
+    mouse.click$.subscribe(() => {
+      this.isAttacking = true;
+    });
   }
 }

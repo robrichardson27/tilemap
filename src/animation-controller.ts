@@ -54,6 +54,10 @@ export class AnimationController {
   private height: number;
   private speed: number;
 
+  get currentFrame(): number {
+    return this.currentFrameCount;
+  }
+
   constructor(options: AnimationOptions) {
     this.duration = options.duration;
     this.img.src = options.srcImg;

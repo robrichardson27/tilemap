@@ -85,6 +85,7 @@ export class Game {
         gameObjects: this.gameObjects,
         keyboard: this.keyboard,
         tick: this.tick,
+        canvas: this.canvas,
       })
     );
   }
