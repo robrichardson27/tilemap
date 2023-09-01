@@ -1,7 +1,7 @@
 import { CanvasLayer } from './canvas';
-import { Player } from './game-objects/player';
-import heathImgSrc from '../assets/health.png';
-import heathHalfImgSrc from '../assets/health-half.png';
+import { Player } from './game-objects/player/player';
+import heathImgSrc from '../assets/sprites/health.png';
+import heathHalfImgSrc from '../assets/sprites/health-half.png';
 
 /**
  * Basic UI for player

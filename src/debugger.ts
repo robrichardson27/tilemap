@@ -5,7 +5,7 @@ import { TileSelector } from './editor/tile-selector';
 import { Game } from './game';
 
 export class Debugger {
-  enabled = true;
+  enabled = false;
 
   private tileSelector: TileSelector;
   private tileMapExporter: TileMapExporter;
@@ -35,6 +35,9 @@ export class Debugger {
 
     if (this.enabled) {
       checkboxEl.setAttribute('checked', this.enabled + '');
+    } else {
+      this.tileSelector.hide();
+      this.tileMapExporter.hide();
     }
 
     this.debugLayers.forEach((layer) => this.game.canvas.addLayer(layer));

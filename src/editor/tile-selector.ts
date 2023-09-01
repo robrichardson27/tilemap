@@ -1,6 +1,6 @@
 import { Tile } from '../tile';
-import tileMapPng from '../../assets/tile-map.png';
-import tileMapJson from '../../assets/tile-map.json';
+import tileMapPng from '../../assets/sprites/tile-map.png';
+import tileMapJson from '../../assets/data/tile-map.json';
 import { TileMap } from '../tile-map';
 
 export class TileSelector {

@@ -1,7 +1,7 @@
 import { Camera } from './camera';
 import { Tile, TileHelper, TileType } from './tile';
-import tileMapBackgroundJson from '../assets/tile-map-background.json';
-import tileMapPng from '../assets/tile-map.png';
+import tileMapBackgroundJson from '../assets/data/tile-map-background.json';
+import tileMapPng from '../assets/sprites/tile-map.png';
 import { CanvasLayer, CanvasLayerOptions } from './canvas';
 
 export interface TileMapOptions extends CanvasLayerOptions {

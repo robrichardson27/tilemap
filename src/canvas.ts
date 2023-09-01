@@ -21,8 +21,8 @@ export interface CanvasLayer {
  * Holds reference to the HTML canvas, context and layer abstraction
  */
 export class Canvas {
-  static Width = 512;
-  static Height = 512;
+  static Width = 640;
+  static Height = 640;
 
   private canvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;

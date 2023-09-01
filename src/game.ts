@@ -1,13 +1,13 @@
 import { Camera } from './camera';
 import { Canvas } from './canvas';
-import { Player } from './game-objects/player';
+import { Player } from './game-objects/player/player';
 import { Key, Keyboard } from './keyboard';
 import { TileMap } from './tile-map';
-import { GameObject, GameObjects } from './game-objects/game-object';
-import { BlobMonster } from './game-objects/blob-monster';
 import { DEBUG } from './app';
 import { PlayerUi } from './player-ui';
 import { Mouse } from './mouse';
+import { BackgroundAudio } from './background-audio';
+import { GameObjects } from './game-objects/game-objects';
 
 /**
  * Main game class, creates game objects
@@ -20,14 +20,15 @@ export class Game {
   background: TileMap;
   keyboard: Keyboard;
   mouse: Mouse;
-  gameObjects: GameObjects = new Map<string, GameObject>();
+  gameObjects: GameObjects = new GameObjects();
   tick: number = 0;
 
   constructor() {
     this.canvas = new Canvas('game');
     this.keyboard = new Keyboard([Key.Left, Key.Right, Key.Up, Key.Down]);
     this.mouse = new Mouse(this.canvas.getCanvas());
-    this.background = TileMap.createBackground(10, 10);
+    // TODO: create levels and load in when reaching edge of current
+    this.background = TileMap.createBackground(20, 20);
     const camera = new Camera(
       0,
       0,
@@ -37,6 +38,8 @@ export class Game {
     );
     this.background.setCamera(camera);
     this.canvas.addLayer(this.background);
+    // Start ambience audio
+    BackgroundAudio.start();
 
     // Create and add player to game objects
     const player = new Player({
@@ -52,13 +55,13 @@ export class Game {
     this.canvas.addLayer(playerUi);
 
     // Create and add monsters to game objects
-    for (let i = 0; i < 3; i++) {
-      const p = this.gameObjects.get(Player.PlayerId) as Player;
-      const x = p.x - 2 * TileMap.TSize + i * TileMap.TSize;
-      const y = p.y + TileMap.TSize * 3;
-      const blob = new BlobMonster({ x: x, y: y }, camera, this.background);
-      this.gameObjects.set(blob.id, blob);
-    }
+    // TODO: load from file and add to game editor
+    this.gameObjects
+      .addBlob({ x: 200, y: 300 }, camera, this.background)
+      .addBlob({ x: 550, y: 550 }, camera, this.background)
+      .addBlob({ x: 150, y: 400 }, camera, this.background)
+      .addBlob({ x: 100, y: 600 }, camera, this.background)
+      .addBlob({ x: 500, y: 350 }, camera, this.background);
 
     // Add all game objects to a canvas layer
     this.gameObjects.forEach((object) => this.canvas.addLayer(object));
@@ -80,7 +83,7 @@ export class Game {
 
   private update() {
     // Update all objects
-    Array.from(this.gameObjects.values()).forEach((object) =>
+    this.gameObjects.forEach((object) =>
       object.update({
         gameObjects: this.gameObjects,
         keyboard: this.keyboard,

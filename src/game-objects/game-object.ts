@@ -11,6 +11,7 @@ import {
   rgbArrayToString,
 } from '../utils';
 import { aabbCollision } from './collision';
+import { GameObjects } from './game-objects';
 
 export interface GameObjectOptions extends CanvasLayerOptions {
   /**
@@ -80,8 +81,6 @@ export interface GameObjectStats {
    */
   attackSpeed: number;
 }
-
-export type GameObjects = Map<string, GameObject>;
 
 export interface GameObjectUpdateArguments {
   gameObjects: GameObjects;
