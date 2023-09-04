@@ -15,13 +15,14 @@ import { aabbCollision, circleInRectangle } from '../collision';
 import { playPlayerPainAudio } from '../player/player-audio';
 
 export abstract class Monster extends GameObject {
-  detectionRadius = 100;
-  detectionCircle!: Circle;
-
+  private detectionRadius = 100;
+  private detectionCircle!: Circle;
+  private doDamage = false;
   private characterDetected = false;
+  // TODO: refactor to use AnimationContoller
   private img: HTMLImageElement;
-  srcX: number;
-  srcY: number;
+  private srcX: number;
+  private srcY: number;
 
   constructor(options: GameObjectOptions) {
     super(options);
@@ -51,12 +52,10 @@ export abstract class Monster extends GameObject {
   }
 
   render(context: CanvasRenderingContext2D, tick: number) {
-    this.renderMonster(context, tick);
     this.renderShadow(context);
+    this.renderMonster(context, tick);
     if (this.characterDetected) this.renderHealth(context);
   }
-
-  private doDamage = false;
 
   private gameObjectsCollisionDetection(args: GameObjectUpdateArguments) {
     args.gameObjects.forEach((object) => {

@@ -9,7 +9,7 @@ css;
 const GAME = new Game();
 
 // Create debugger and inject Game
-export const DEBUG = new Debugger(GAME);
+export const DEBUG = new Debugger(GAME, false);
 
 // Start the game
-GAME.run();
+GAME.start();

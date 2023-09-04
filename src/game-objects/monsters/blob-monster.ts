@@ -11,22 +11,22 @@ export class BlobMonster extends Monster {
   /**
    * Create a blob monster
    */
-  constructor(start: Point, camera: Camera, background: TileMap) {
+  constructor(pos: Point, camera: Camera, background: TileMap) {
     super({
       id: BlobMonster.BlobId + nextId++,
       hide: false,
       layer: 2,
-      x: start.x,
-      y: start.y,
-      width: 28,
-      height: 36,
-      srcX: 18,
-      srcY: 9,
+      x: pos.x,
+      y: pos.y,
+      width: 56,
+      height: 72,
+      srcX: 4,
+      srcY: 0,
       camera: camera,
       imgSrc: blobImgSrc,
       background: background,
       stats: {
-        speed: 1,
+        speed: 1.5,
         health: 20,
         attackPower: 0.5,
         attackSpeed: 20,

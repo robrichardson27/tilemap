@@ -19,9 +19,10 @@ import {
   playPlayerRunningAudio,
   playPlayerSwordAudio,
 } from './player-audio';
+import { skip } from 'rxjs';
 
 export interface PlayerOptions {
-  start: Point;
+  pos: Point;
   camera: Camera;
   background: TileMap;
   mouse: Mouse;
@@ -53,8 +54,8 @@ export class Player extends GameObject {
       id: Player.PlayerId,
       hide: false,
       layer: 1,
-      x: options.start.x,
-      y: options.start.y,
+      x: options.pos.x,
+      y: options.pos.y,
       width: 34,
       height: 46,
       camera: options.camera,
@@ -86,15 +87,15 @@ export class Player extends GameObject {
   }
 
   render(context: CanvasRenderingContext2D) {
-    this.renderCharacter(context);
     this.renderShadow(context);
+    this.renderCharacter(context);
   }
 
   update(args: GameObjectUpdateArguments) {
     this.isTakingDamage = false;
     // Reset directions
     this.dirX = this.dirY = 0;
-    // UP
+    // Handle moving up
     if (args.keyboard.isDown(Key.Up)) {
       this.dirY = -1;
       this.currentWalkAnimation = this.playerAnimations.walkUp;
@@ -106,7 +107,7 @@ export class Player extends GameObject {
         );
       }
     }
-    // DOWN
+    // Handle moving down
     if (args.keyboard.isDown(Key.Down)) {
       this.dirY = 1;
       this.currentWalkAnimation = this.playerAnimations.walkDown;
@@ -118,7 +119,7 @@ export class Player extends GameObject {
         );
       }
     }
-    // LEFT
+    // Handle moving left
     if (args.keyboard.isDown(Key.Left)) {
       this.dirX = -1;
       this.currentWalkAnimation = this.playerAnimations.walkLeft;
@@ -130,7 +131,7 @@ export class Player extends GameObject {
         );
       }
     }
-    // RIGHT
+    // Handle moving right
     if (args.keyboard.isDown(Key.Right)) {
       this.dirX = 1;
       this.currentWalkAnimation = this.playerAnimations.walkRight;
@@ -256,7 +257,7 @@ export class Player extends GameObject {
   }
 
   private initMouseListener(mouse: Mouse) {
-    mouse.click$.subscribe(() => {
+    mouse.click$.pipe(skip(1)).subscribe(() => {
       this.isAttacking = true;
       playPlayerSwordAudio();
     });

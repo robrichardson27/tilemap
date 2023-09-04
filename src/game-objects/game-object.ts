@@ -53,11 +53,11 @@ export interface GameObjectOptions extends CanvasLayerOptions {
   /**
    * Used for collision detection with environment
    */
-  background: TileMap;
+  background?: TileMap;
   /**
    * Various stats
    */
-  stats: GameObjectStats;
+  stats?: GameObjectStats;
 }
 
 /**
@@ -112,8 +112,8 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
     this.hide = options.hide;
     this.layer = options.layer;
     this.camera = options.camera;
-    this.background = options.background;
-    this.stats = options.stats;
+    this.background = options.background ?? <TileMap>{};
+    this.stats = options.stats ?? <GameObjectStats>{};
     this.vector = new Vector(this.center, this.center);
   }
 

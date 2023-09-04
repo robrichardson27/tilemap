@@ -5,14 +5,15 @@ import { TileSelector } from './editor/tile-selector';
 import { Game } from './game';
 
 export class Debugger {
-  enabled = false;
+  enabled: boolean;
 
   private tileSelector: TileSelector;
   private tileMapExporter: TileMapExporter;
   private debugLayers: CanvasLayer[] = [];
   private game: Game;
 
-  constructor(game: Game) {
+  constructor(game: Game, enabled = false) {
+    this.enabled = enabled;
     this.game = game;
     this.tileSelector = new TileSelector();
     this.debugLayers.push(

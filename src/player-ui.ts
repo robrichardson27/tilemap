@@ -31,22 +31,19 @@ export class PlayerUi implements CanvasLayer {
     const fullHearts = Math.floor(this.playerHealth);
     const halfHeart = this.playerHealth % 1 > 0;
     for (let i = 0; i < fullHearts; i++) {
-      const dx = 10 + i * 32 + i * 10;
+      const dx = 10 + i * 42;
       context.drawImage(this.healthImg, 0, 0, 32, 32, dx, 10, 32, 32);
       if (halfHeart) {
-        context.drawImage(
-          this.healthHalfImg,
-          0,
-          0,
-          32,
-          32,
-          dx + 32 + 10,
-          10,
-          32,
-          32
-        );
+        this.drawHalfHeart(context, dx + 42);
       }
     }
+    if (fullHearts === 0 && halfHeart) {
+      this.drawHalfHeart(context, 10);
+    }
+  }
+
+  private drawHalfHeart(context: CanvasRenderingContext2D, dx: number) {
+    context.drawImage(this.healthHalfImg, 0, 0, 32, 32, dx, 10, 32, 32);
   }
 
   debug(context: CanvasRenderingContext2D): void {

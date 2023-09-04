@@ -1,7 +1,6 @@
 import waves1 from '../assets/audio/ambience-waves.mp3';
 import birds1 from '../assets/audio/ambience-birds.mp3';
 import field1 from '../assets/audio/music-field.wav';
-import { first, fromEvent } from 'rxjs';
 
 // TODO: link ambience audio to play when certain tiles are in view
 export class BackgroundAudio {
@@ -9,15 +8,13 @@ export class BackgroundAudio {
   private static birdsAudio = new Audio(birds1);
   private static fieldMusic = new Audio(field1);
 
+  /**
+   * Audio must play after user interaction with DOM
+   */
   static start() {
-    // Audio must play after user interaction with DOM
-    fromEvent(document, 'click')
-      .pipe(first())
-      .subscribe(() => {
-        BackgroundAudio.playWavesAudio();
-        BackgroundAudio.playBirdsAudio();
-        BackgroundAudio.playFieldMusic();
-      });
+    BackgroundAudio.playWavesAudio();
+    BackgroundAudio.playBirdsAudio();
+    BackgroundAudio.playFieldMusic();
   }
 
   static playWavesAudio() {
