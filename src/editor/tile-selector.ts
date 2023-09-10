@@ -1,13 +1,13 @@
-import { Tile } from '../tile';
+import { TileData } from '../tile-maps/tile';
 import tileMapPng from '../../assets/sprites/tile-map.png';
 import tileMapJson from '../../assets/data/tile-map.json';
-import { TileMap } from '../tile-map';
+import { TileMap } from '../tile-maps/tile-map';
 
 export class TileSelector {
   private ui: HTMLDivElement;
-  private tiles: Tile[] = [];
+  private tiles: TileData[] = [];
   private tilemapImg = new Image();
-  private selectedTile: Tile | undefined;
+  private selectedTile: TileData | undefined;
 
   constructor() {
     this.ui = document.getElementById('tile-selector') as HTMLDivElement;
@@ -20,10 +20,10 @@ export class TileSelector {
       swatchEl.width = TileMap.TSize;
       swatchEl.height = TileMap.TSize;
       const styles = `margin-right: 4px; border: solid 2px rgba(0,0,0,0); cursor: pointer; object-fit: cover; object-position: -${
-        tile.type * TileMap.TSize
+        tile.index * TileMap.TSize
       }px;`;
       swatchEl.style.cssText = styles;
-      swatchEl.setAttribute('data-tile', tile.type + '');
+      swatchEl.setAttribute('data-tile', tile.index + '');
       swatchEl.addEventListener('mousedown', this.onMouseDown.bind(this));
       this.ui.append(swatchEl);
     });
@@ -37,23 +37,25 @@ export class TileSelector {
     this.ui.style.display = 'block';
   }
 
-  getSelectedTile(): Tile | undefined {
+  getSelectedTile(): TileData | undefined {
     return this.selectedTile;
   }
 
   private onMouseDown(e: MouseEvent) {
     this.clearSelectedStyle();
-    const tileType = parseInt(
+    const tileIndex = parseInt(
       (e.target as HTMLImageElement).getAttribute('data-tile') as string
     );
     (e.target as HTMLImageElement).style.border = '2px solid red';
 
-    this.selectedTile = this.tiles[tileType];
+    this.selectedTile = this.tiles[tileIndex];
   }
 
   private clearSelectedStyle(): void {
     this.ui.childNodes.forEach((tile) => {
-      (tile as HTMLImageElement).style.border = '2px solid rgba(0,0,0,0)';
+      if (tile instanceof HTMLImageElement) {
+        (tile as HTMLImageElement).style.border = '2px solid rgba(0,0,0,0)';
+      }
     });
   }
 }

@@ -1,4 +1,7 @@
 import { CanvasLayer } from './canvas';
+import { GameObjectExporter } from './editor/game-object-exporter';
+import { GameObjectPlacer } from './editor/game-object-placer';
+import { GameObjectSelector } from './editor/game-object-selector';
 import { TileMapExporter } from './editor/tile-map-exporter';
 import { TilePlacer } from './editor/tile-placer';
 import { TileSelector } from './editor/tile-selector';
@@ -11,23 +14,36 @@ export class Debugger {
   private tileMapExporter: TileMapExporter;
   private debugLayers: CanvasLayer[] = [];
   private game: Game;
+  private gameObjectSelector: GameObjectSelector;
+  private gameObjectPlacer: GameObjectPlacer;
 
   constructor(game: Game, enabled = false) {
     this.enabled = enabled;
     this.game = game;
     this.tileSelector = new TileSelector();
+    this.gameObjectSelector = new GameObjectSelector(
+      game.camera,
+      game.tileMaps
+    );
+    this.gameObjectPlacer = new GameObjectPlacer({
+      gameObjects: game.gameObjects,
+      gameObjectSelector: this.gameObjectSelector,
+      camera: game.camera,
+      canvas: game.canvas,
+    });
+    this.gameObjectPlacer;
     this.debugLayers.push(
       new TilePlacer({
         id: 'tile-placer',
         hide: !this.enabled,
         layer: 0,
         tileSelector: this.tileSelector,
-        canvas: this.game.canvas,
-        tileMap: this.game.background,
+        game: game,
       })
     );
 
-    this.tileMapExporter = new TileMapExporter(this.game.background);
+    this.tileMapExporter = new TileMapExporter(this.game.tileMaps);
+    GameObjectExporter.init(this.game.gameObjects);
 
     const checkboxEl = document.getElementById(
       'debug-input'
@@ -39,6 +55,7 @@ export class Debugger {
     } else {
       this.tileSelector.hide();
       this.tileMapExporter.hide();
+      this.gameObjectSelector.hide();
     }
 
     this.debugLayers.forEach((layer) => this.game.canvas.addLayer(layer));
@@ -49,9 +66,13 @@ export class Debugger {
     if (this.enabled) {
       this.tileSelector.show();
       this.tileMapExporter.show();
+      this.gameObjectSelector.show();
+      this.debugLayers.forEach((layer) => (layer.hide = false));
     } else {
       this.tileSelector.hide();
       this.tileMapExporter.hide();
+      this.gameObjectSelector.hide();
+      this.debugLayers.forEach((layer) => (layer.hide = true));
     }
   }
 }

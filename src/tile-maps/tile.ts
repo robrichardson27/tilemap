@@ -1,39 +1,16 @@
-import { DEBUG } from './app';
+import { DEBUG } from '../app';
 import { TileMap } from './tile-map';
-import { Rectangle } from './utils';
+import { Rectangle } from '../utils';
+
+export interface TileData {
+  index: number;
+  type: TileType;
+}
 
 export enum TileType {
   Empty = -1,
-  BeachBL = 0,
-  BeachB = 1,
-  BeachBR = 2,
-  BeachR = 3,
-  BeachTR = 4,
-  BeachT = 5,
-  BeachTL = 6,
-  BeachL = 7,
-  ShoreBL = 8,
-  ShoreB = 9,
-  ShoreBR = 10,
-  ShoreR = 11,
-  ShoreTR = 12,
-  ShoreT = 13,
-  ShoreTL = 14,
-  ShoreL = 15,
-  Sea = 16,
-  Sand = 17,
-  Sand2 = 18,
-  GrassSandBL = 19,
-  GrassSandB = 20,
-  GrassSandBR = 21,
-  GrassSandR = 22,
-  GrassSandTR = 23,
-  GrassSandT = 24,
-  GrassSandTL = 25,
-  GrassSandL = 26,
-  GrassEmpty = 27,
-  GrassPlant = 28,
-  GrassBlades = 29,
+  OutOfBounds = 0,
+  Walkable = 1,
 }
 
 export interface TileOptions {
@@ -45,17 +22,17 @@ export interface TileOptions {
   y: number;
   width: number;
   height: number;
+  index: number;
   type: TileType;
-  outOfBounds: boolean;
 }
 
-export class Tile extends Rectangle {
+export class Tile extends Rectangle implements TileData {
   srcX: number;
   srcY: number;
   srcWidth: number;
   srcHeight: number;
+  index: number;
   type: TileType;
-  outOfBounds: boolean;
 
   constructor(options: TileOptions) {
     super(options.x, options.y, options.width, options.height);
@@ -63,8 +40,8 @@ export class Tile extends Rectangle {
     this.srcY = options.srcY;
     this.srcWidth = options.srcWidth;
     this.srcHeight = options.srcHeight;
+    this.index = options.index;
     this.type = options.type;
-    this.outOfBounds = options.outOfBounds;
   }
 }
 
@@ -76,7 +53,7 @@ export class TileHelper {
     const tile = tileMap.tiles[row * tileMap.cols + col];
     if (tile) {
       return new Tile({
-        srcX: tile.type * TileMap.TSize,
+        srcX: tile.index * TileMap.TSize,
         srcY: 0,
         srcWidth: TileMap.TSize,
         srcHeight: TileMap.TSize,
@@ -88,8 +65,8 @@ export class TileHelper {
         ),
         width: TileMap.TSize,
         height: TileMap.TSize,
+        index: tile.index,
         type: tile.type,
-        outOfBounds: tile.outOfBounds,
       });
     }
     return <Tile>{};
@@ -112,7 +89,7 @@ export class TileHelper {
   }
 
   static debug(tileMap: TileMap, tile: Tile) {
-    if (tile.type !== undefined) {
+    if (tile.index !== undefined) {
       tileMap.context.beginPath();
       tileMap.context.lineWidth = 1;
       tileMap.context.strokeStyle = 'rgba(255, 0, 0, 0.2)';
@@ -120,9 +97,9 @@ export class TileHelper {
       tileMap.context.closePath();
       tileMap.context.font = '12px sans-serif';
       tileMap.context.fillStyle = 'purple';
-      tileMap.context.fillText(tile.type + '', tile.x, tile.y + 12);
+      tileMap.context.fillText(tile.index + '', tile.x, tile.y + 12);
     }
-    if (tile.outOfBounds) {
+    if (tile.type === TileType.OutOfBounds) {
       tileMap.context.beginPath();
       tileMap.context.fillStyle = 'rgba(255, 0, 0, 0.2)';
       tileMap.context.fillRect(tile.x, tile.y, TileMap.TSize, TileMap.TSize);

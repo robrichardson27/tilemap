@@ -1,5 +1,4 @@
 import { Canvas } from '../../canvas';
-import { TileMap } from '../../tile-map';
 import { GameObject, GameObjectUpdateArguments } from '../game-object';
 import { Point, Rectangle, rgbArrayToString } from '../../utils';
 import { Camera } from '../../camera';
@@ -20,11 +19,13 @@ import {
   playPlayerSwordAudio,
 } from './player-audio';
 import { skip } from 'rxjs';
+import { GameObjectType } from '../game-objects';
+import { TileMaps } from '../../tile-maps/tile-maps';
 
 export interface PlayerOptions {
   pos: Point;
   camera: Camera;
-  background: TileMap;
+  tileMaps: TileMaps;
   mouse: Mouse;
 }
 
@@ -51,6 +52,7 @@ export class Player extends GameObject {
 
   constructor(options: PlayerOptions) {
     super({
+      type: GameObjectType.Player,
       id: Player.PlayerId,
       hide: false,
       layer: 1,
@@ -59,7 +61,7 @@ export class Player extends GameObject {
       width: 34,
       height: 46,
       camera: options.camera,
-      background: options.background,
+      tileMaps: options.tileMaps,
       stats: {
         speed: 2,
         health: 3,

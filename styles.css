@@ -11,7 +11,7 @@ body {
 
 .grid {
   display: grid;
-  grid-template-columns: 412px 1fr;
+  grid-template-columns: 1fr 640px 1fr;
   column-gap: 25px;
   margin: 25px;
 }
@@ -31,4 +31,9 @@ button {
   color: #ffffff;
   background-color: #0075ff;
   cursor: pointer;
+  margin-bottom: 25px;
+}
+
+select {
+  background-color: #181818;
 }

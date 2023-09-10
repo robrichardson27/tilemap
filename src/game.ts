@@ -1,13 +1,14 @@
 import { Camera } from './camera';
 import { Canvas } from './canvas';
 import { Key, Keyboard } from './keyboard';
-import { TileMap } from './tile-map';
 import { PlayerUi } from './player-ui';
 import { Mouse } from './mouse';
 import { BackgroundAudio } from './background-audio';
 import { GameObjects } from './game-objects/game-objects';
 import { first, fromEvent } from 'rxjs';
 import { rgbArrayToString } from './utils';
+import tileMapBackgroundJson from '../assets/data/tile-map-background.json';
+import { TileMaps } from './tile-maps/tile-maps';
 
 /**
  * Main game class, creates game objects
@@ -18,7 +19,8 @@ export class Game {
 
   canvas: Canvas;
   gameObjects: GameObjects;
-  background: TileMap;
+  tileMaps: TileMaps;
+  camera: Camera;
   private tick: number = 0;
   private requestId!: number;
 
@@ -26,21 +28,15 @@ export class Game {
     this.canvas = new Canvas('game');
     const keyboard = new Keyboard([Key.Left, Key.Right, Key.Up, Key.Down]);
     const mouse = new Mouse(this.canvas.getCanvas());
+    this.camera = new Camera(0, 0, Canvas.Width, Canvas.Height, 20, 20);
+
     // TODO: create levels and load in when reaching edge of current
-    this.background = TileMap.createBackground(20, 20);
-    const camera = new Camera(
-      0,
-      0,
-      Canvas.Width,
-      Canvas.Height,
-      this.background
-    );
-    this.background.setCamera(camera);
-    this.canvas.addLayer(this.background);
+    this.tileMaps = new TileMaps({ camera: this.camera, canvas: this.canvas });
+    this.tileMaps.createBackgrounds(20, 20, tileMapBackgroundJson);
 
     this.gameObjects = new GameObjects({
-      camera: camera,
-      background: this.background,
+      camera: this.camera,
+      tileMaps: this.tileMaps,
       mouse: mouse,
       keyboard: keyboard,
       canvas: this.canvas,
@@ -51,20 +47,13 @@ export class Game {
     this.gameObjects
       .addPlayer({ x: 350, y: 150 })
       .addBlob({ x: 200, y: 300 })
-      .addBlob({ x: 550, y: 550 })
-      .addBlob({ x: 150, y: 400 })
-      .addBlob({ x: 100, y: 600 })
       .addBlob({ x: 500, y: 350 })
       .addPalmTree({ x: 280, y: 210 })
-      .addPalmTree({ x: 400, y: 220 })
       .addPalmTree({ x: 420, y: 420 });
 
     // Create and add player ui to canvas
     const playerUi = new PlayerUi(this.gameObjects.getPlayer());
     this.canvas.addLayer(playerUi);
-
-    // Add all game objects to a canvas layer
-    this.gameObjects.forEach((object) => this.canvas.addLayer(object));
   }
 
   start() {

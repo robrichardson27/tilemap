@@ -1,4 +1,4 @@
-import { TileMap } from './tile-map';
+import { TileMap } from './tile-maps/tile-map';
 
 /**
  * Contains information regarding to the Camera's position and viewport
@@ -16,14 +16,15 @@ export class Camera {
     y: number,
     width: number,
     height: number,
-    tileMap: TileMap
+    cols: number,
+    rows: number
   ) {
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
-    this.maxX = tileMap.cols * TileMap.TSize - width;
-    this.maxY = tileMap.rows * TileMap.TSize - height;
+    this.maxX = cols * TileMap.TSize - width;
+    this.maxY = rows * TileMap.TSize - height;
   }
 
   update(dirX: number, dirY: number, speed: number) {

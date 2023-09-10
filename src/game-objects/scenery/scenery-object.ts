@@ -8,19 +8,11 @@ export interface SceneryObjectOptions extends GameObjectOptions {
 }
 
 export class SceneryObject extends GameObject {
-  // TODO: refactor to use AnimationContoller
-  private img: HTMLImageElement;
-  private srcX: number;
-  private srcY: number;
-  private sceneryOptions: SceneryObjectOptions;
+  sceneryOptions: SceneryObjectOptions;
 
   // TODO: update collision detection for scenery
   constructor(options: SceneryObjectOptions) {
     super(options);
-    this.img = new Image();
-    this.img.src = options.imgSrc as string;
-    this.srcX = options.srcX as number;
-    this.srcY = options.srcY as number;
     this.debugColor = [255, 128, 0];
     this.sceneryOptions = options;
   }

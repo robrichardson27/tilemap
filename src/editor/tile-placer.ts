@@ -1,14 +1,15 @@
 import { DEBUG } from '../app';
 import { Camera } from '../camera';
-import { Canvas, CanvasLayer, CanvasLayerOptions } from '../canvas';
-import { Tile } from '../tile';
-import { TileMap } from '../tile-map';
+import { CanvasLayer, CanvasLayerOptions } from '../canvas';
+import { Game } from '../game';
+import { Tile } from '../tile-maps/tile';
+import { TileMap } from '../tile-maps/tile-map';
+import { TileMaps } from '../tile-maps/tile-maps';
 import { TileSelector } from './tile-selector';
 
 export interface TilePlacerOptions extends CanvasLayerOptions {
   tileSelector: TileSelector;
-  canvas: Canvas;
-  tileMap: TileMap;
+  game: Game;
 }
 
 export class TilePlacer implements CanvasLayer {
@@ -18,7 +19,7 @@ export class TilePlacer implements CanvasLayer {
 
   private tileSelector: TileSelector;
   private gameCanvas: HTMLCanvasElement;
-  private gameTileMap: TileMap;
+  private gameTileMaps: TileMaps;
   private debugTileMap: TileMap;
   private x: number = 0;
   private y: number = 0;
@@ -31,11 +32,11 @@ export class TilePlacer implements CanvasLayer {
     this.hide = options.hide;
     this.layer = options.layer;
     this.tileSelector = options.tileSelector;
-    this.gameCanvas = options.canvas.getCanvas();
-    this.gameTileMap = options.tileMap;
-    this.camera = options.tileMap.camera as Camera;
-    const cols = options.tileMap.cols;
-    const rows = options.tileMap.rows;
+    this.gameCanvas = options.game.canvas.getCanvas();
+    this.gameTileMaps = options.game.tileMaps;
+    this.camera = options.game.camera;
+    const cols = options.game.tileMaps.array[0].cols;
+    const rows = options.game.tileMaps.array[0].rows;
     this.debugTileMap = new TileMap({
       id: 'debug-tile-map',
       hide: false,
@@ -43,8 +44,8 @@ export class TilePlacer implements CanvasLayer {
       tiles: [],
       cols: cols,
       rows: rows,
+      camera: this.camera,
     });
-    this.debugTileMap.setCamera(this.camera as Camera);
     this.gameCanvas.addEventListener('mousedown', this.onMouseDown.bind(this));
     this.gameCanvas.addEventListener('mousemove', this.onMouseMove.bind(this));
     this.gameCanvas.addEventListener(
@@ -61,7 +62,10 @@ export class TilePlacer implements CanvasLayer {
 
   onMouseDown(e: MouseEvent) {
     if (DEBUG.enabled && e.button === 0) {
-      this.setTileOnMap(e, this.gameTileMap);
+      const layerId = (
+        document.getElementById('tile-layer-select') as HTMLSelectElement
+      ).value;
+      this.setTileOnMap(e, this.gameTileMaps.get(layerId));
     }
   }
 
@@ -97,7 +101,7 @@ export class TilePlacer implements CanvasLayer {
     const tile = this.tileSelector.getSelectedTile();
 
     if (tile) {
-      tileMap.setTile(tile, col, row);
+      tileMap.setTile(<Tile>tile, col, row);
     }
   }
 

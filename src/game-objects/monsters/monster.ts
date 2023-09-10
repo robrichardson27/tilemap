@@ -1,4 +1,4 @@
-import { TileMap } from '../../tile-map';
+import { TileMap } from '../../tile-maps/tile-map';
 import { Player } from '../player/player';
 import {
   Circle,
@@ -19,17 +19,9 @@ export abstract class Monster extends GameObject {
   private detectionCircle!: Circle;
   private doDamage = false;
   private characterDetected = false;
-  // TODO: refactor to use AnimationContoller
-  private img: HTMLImageElement;
-  private srcX: number;
-  private srcY: number;
 
   constructor(options: GameObjectOptions) {
     super(options);
-    this.img = new Image();
-    this.img.src = options.imgSrc as string;
-    this.srcX = options.srcX as number;
-    this.srcY = options.srcY as number;
     this.setDetectionCircle();
     this.debugColor = [0, 128, 0];
   }
@@ -44,15 +36,12 @@ export abstract class Monster extends GameObject {
         this.move();
         // Collision detection with other game objects
         this.gameObjectsCollisionDetection(args);
-        // Clamp values so they don't extend grid
-        this.clampValues();
       }
     }
     this.setDetectionCircle();
   }
 
   render(context: CanvasRenderingContext2D, tick: number) {
-    this.renderShadow(context);
     this.renderMonster(context, tick);
     if (this.characterDetected) this.renderHealth(context);
   }
@@ -129,21 +118,6 @@ export abstract class Monster extends GameObject {
       this.width,
       this.height
     );
-  }
-
-  private renderShadow(context: CanvasRenderingContext2D) {
-    context.beginPath();
-    context.fillStyle = 'rgba(0, 0, 0, 0.2)';
-    context.ellipse(
-      this.center.x - this.camera.x,
-      this.y - this.camera.y + this.height - 2,
-      this.width / 2,
-      5,
-      0,
-      0,
-      180
-    );
-    context.fill();
   }
 
   private renderHealth(context: CanvasRenderingContext2D) {

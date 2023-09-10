@@ -1,13 +1,13 @@
-import { Camera } from './camera';
-import { Tile, TileHelper, TileType } from './tile';
-import tileMapBackgroundJson from '../assets/data/tile-map-background.json';
-import tileMapPng from '../assets/sprites/tile-map.png';
-import { CanvasLayer, CanvasLayerOptions } from './canvas';
+import { Camera } from '../camera';
+import { Tile, TileData, TileHelper, TileType } from './tile';
+import tileMapPng from '../../assets/sprites/tile-map.png';
+import { CanvasLayer, CanvasLayerOptions } from '../canvas';
 
 export interface TileMapOptions extends CanvasLayerOptions {
-  tiles: Tile[];
+  tiles: TileData[];
   cols: number;
   rows: number;
+  camera: Camera;
 }
 
 /**
@@ -16,7 +16,13 @@ export interface TileMapOptions extends CanvasLayerOptions {
 export class TileMap implements CanvasLayer {
   static TSize = 64;
 
-  static createEmptyTiles(cols: number, rows: number): Tile[] {
+  /**
+   * Creates an empty tilemap
+   * @param cols
+   * @param rows
+   * @returns
+   */
+  static createEmptyTiles(cols: number, rows: number): TileData[] {
     const tiles: Tile[] = [];
 
     for (let col = 0; col < cols; col++) {
@@ -28,28 +34,40 @@ export class TileMap implements CanvasLayer {
     return tiles;
   }
 
-  // Move to separate file!
-  static BackgroundId = 'background';
-  static createBackground(cols: number, rows: number): TileMap {
+  static BackgroundId = 'background-';
+  /**
+   * Creates a single background tilemap layer
+   * @param cols
+   * @param rows
+   * @returns
+   */
+  static createBackgroundLayer(
+    cols: number,
+    rows: number,
+    camera: Camera,
+    json: TileData[],
+    index: number
+  ): TileMap {
     const tiles = TileMap.createEmptyTiles(cols, rows);
-    tiles.splice(0, tileMapBackgroundJson.length, ...tileMapBackgroundJson);
+    tiles.splice(0, json.length, ...json);
     return new TileMap({
-      id: TileMap.BackgroundId,
+      id: TileMap.BackgroundId + index,
       hide: false,
-      layer: 999,
+      layer: 999 - index,
       tiles: tiles,
       cols: cols,
       rows: rows,
+      camera: camera,
     });
   }
 
   id: string;
   hide: boolean;
   layer: number;
-  tiles: Tile[];
+  tiles: TileData[];
   cols: number;
   rows: number;
-  camera?: Camera;
+  camera: Camera;
   tileMapImage: HTMLImageElement;
   startCol: number = 0;
   endCol: number = 0;
@@ -67,12 +85,9 @@ export class TileMap implements CanvasLayer {
     this.tiles = options.tiles;
     this.cols = options.cols;
     this.rows = options.rows;
+    this.camera = options.camera;
     this.tileMapImage = new Image();
     this.tileMapImage.src = tileMapPng;
-  }
-
-  setCamera(camera: Camera) {
-    this.camera = camera;
   }
 
   setTile(tile: Tile, col: number, row: number) {

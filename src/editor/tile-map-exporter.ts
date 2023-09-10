@@ -1,10 +1,10 @@
-import { TileMap } from '../tile-map';
+import { TileMaps } from '../tile-maps/tile-maps';
 
 export class TileMapExporter {
-  constructor(tileMap: TileMap) {
+  constructor(tileMaps: TileMaps) {
     (
       document.getElementById('tile-map-exporter-btn') as HTMLButtonElement
-    ).addEventListener('click', () => this.exportTileMap(tileMap));
+    ).addEventListener('click', () => this.exportTileMap(tileMaps));
   }
 
   show() {
@@ -19,9 +19,9 @@ export class TileMapExporter {
     ).style.display = 'none';
   }
 
-  exportTileMap(tileMap: TileMap) {
-    const filename = tileMap.id + '.json';
-    const jsonStr = JSON.stringify(tileMap.tiles);
+  exportTileMap(tileMaps: TileMaps) {
+    const filename = 'background.json';
+    const jsonStr = tileMaps.toJsonString();
 
     const element = document.createElement('a');
     element.setAttribute(

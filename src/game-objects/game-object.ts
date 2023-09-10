@@ -1,8 +1,9 @@
 import { Camera } from '../camera';
 import { Canvas, CanvasLayer, CanvasLayerOptions } from '../canvas';
 import { Keyboard } from '../keyboard';
-import { Tile, TileHelper } from '../tile';
-import { TileMap } from '../tile-map';
+import { Tile, TileHelper, TileType } from '../tile-maps/tile';
+import { TileMap } from '../tile-maps/tile-map';
+import { TileMaps } from '../tile-maps/tile-maps';
 import {
   Rectangle,
   RgbArray,
@@ -11,9 +12,13 @@ import {
   rgbArrayToString,
 } from '../utils';
 import { aabbCollision } from './collision';
-import { GameObjects } from './game-objects';
+import { GameObjectType, GameObjects } from './game-objects';
 
 export interface GameObjectOptions extends CanvasLayerOptions {
+  /**
+   * The concrete class name for the game object
+   */
+  type: GameObjectType;
   /**
    * The x-axis coordinate in the destination canvas at which
    * to place the top-left corner of the source image
@@ -51,9 +56,9 @@ export interface GameObjectOptions extends CanvasLayerOptions {
    */
   imgSrc?: string;
   /**
-   * Used for collision detection with environment
+   * Used for collision detection with background tilemaps
    */
-  background?: TileMap;
+  tileMaps?: TileMaps;
   /**
    * Various stats
    */
@@ -93,13 +98,16 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
   id: string;
   hide: boolean;
   layer: number;
-  background: TileMap;
+  tileMaps: TileMaps;
   dirX: number = 0;
   dirY: number = 0;
   debugColor: RgbArray = [255, 0, 0];
   vector: Vector;
   stats: GameObjectStats;
   prev!: Rectangle;
+  img: HTMLImageElement;
+  srcX: number;
+  srcY: number;
 
   protected camera: Camera;
 
@@ -108,11 +116,15 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
 
   constructor(options: GameObjectOptions) {
     super(options.x, options.y, options.width, options.height);
+    this.img = new Image();
+    this.img.src = options.imgSrc as string;
+    this.srcX = options.srcX as number;
+    this.srcY = options.srcY as number;
     this.id = options.id;
     this.hide = options.hide;
     this.layer = options.layer;
     this.camera = options.camera;
-    this.background = options.background ?? <TileMap>{};
+    this.tileMaps = options.tileMaps ?? <TileMaps>{};
     this.stats = options.stats ?? <GameObjectStats>{};
     this.vector = new Vector(this.center, this.center);
   }
@@ -132,7 +144,7 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
     // Move character x
     this.x += this.dirX * this.stats.speed;
     // Detect collision
-    let collides = this.collisionDetection();
+    let collides = this.checkTileMapsForCollision();
     // React to collision
     if (collides) {
       this.x = this.prev.x;
@@ -140,7 +152,7 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
     // Move character y
     this.y += this.dirY * this.stats.speed;
     // Detect collision
-    collides = this.collisionDetection();
+    collides = this.checkTileMapsForCollision();
     // React to collision
     if (collides) {
       this.y = this.prev.y;
@@ -160,7 +172,16 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
     );
   }
 
-  private collisionDetection(): boolean {
+  private checkTileMapsForCollision(): boolean {
+    let collides = false;
+    for (let i = 0; i < this.tileMaps.array.length; i++) {
+      collides = this.collisionDetection(this.tileMaps.array[i]);
+      if (collides) return true;
+    }
+    return false;
+  }
+
+  private collisionDetection(tileMap: TileMap): boolean {
     const startCol = Math.floor(this.x / TileMap.TSize);
     const endCol = Math.ceil((this.x + this.width) / TileMap.TSize);
     const startRow = Math.floor(this.y / TileMap.TSize);
@@ -173,9 +194,9 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
 
     for (let c = startCol; c < endCol; c++) {
       for (let r = startRow; r < endRow; r++) {
-        const tile = TileHelper.getTile(this.background, c, r);
+        const tile = TileHelper.getTile(tileMap, c, r);
         this.touchingTiles.push(tile);
-        if (tile.outOfBounds) {
+        if (tile.type === TileType.OutOfBounds) {
           this.outOfBoundsTiles.push(tile);
         }
       }
