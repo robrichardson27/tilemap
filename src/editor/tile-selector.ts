@@ -48,7 +48,13 @@ export class TileSelector {
     );
     (e.target as HTMLImageElement).style.border = '2px solid red';
 
-    this.selectedTile = this.tiles[tileIndex];
+    const tile = this.tiles[tileIndex];
+    if (tile === this.selectedTile) {
+      this.selectedTile = undefined;
+      this.clearSelectedStyle();
+    } else {
+      this.selectedTile = tile;
+    }
   }
 
   private clearSelectedStyle(): void {

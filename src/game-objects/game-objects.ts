@@ -8,6 +8,7 @@ import { GameObject } from './game-object';
 import { BlobMonster } from './monsters/blob-monster';
 import { Player } from './player/player';
 import { PalmTree } from './scenery/palm-tree';
+import gameObjectsJson from '../../assets/data/game-objects.json';
 
 export enum GameObjectType {
   Player = 'Player',
@@ -21,6 +22,11 @@ export interface GameObjectsOptions {
   mouse: Mouse;
   keyboard: Keyboard;
   canvas: Canvas;
+}
+
+export interface GameObjectData {
+  pos: Point;
+  type: GameObjectType;
 }
 
 export class GameObjects {
@@ -51,6 +57,7 @@ export class GameObjects {
 
   delete(id: string): GameObjects {
     this.objects.delete(id);
+    this.options.canvas.removeLayer(id);
     return this;
   }
 
@@ -72,8 +79,25 @@ export class GameObjects {
   }
 
   toJsonString(): string {
-    // TODO: remove all redundant stuff - implement an export method on GameObject?
-    return JSON.stringify(this.toArray());
+    return JSON.stringify(this.toArray().map((object) => object.export()));
+  }
+
+  load() {
+    const objects = gameObjectsJson as GameObjectData[];
+    objects.forEach((object) => this.createObject(object));
+  }
+
+  createObject(object: GameObjectData) {
+    switch (object.type) {
+      case GameObjectType.Player:
+        this.addPlayer(object.pos);
+        break;
+      case GameObjectType.BlobMonster:
+        this.addBlob(object.pos);
+        break;
+      case GameObjectType.PalmTree:
+        this.addPalmTree(object.pos);
+    }
   }
 
   addPlayer(pos: Point): GameObjects {

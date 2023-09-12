@@ -76,10 +76,17 @@ export class GameObjectPlacer {
           this.selectedObject.sceneryOptions.renderY = y;
         }
       }
+
+      const el = document.getElementById('game-object-pos') as HTMLPreElement;
+      el.innerText = `{ x: ${this.selectedObject.x}, y: ${this.selectedObject.y} }`;
     }
   }
 
   onMouseLeave() {
-    // remove
+    if (this.selectedObject) {
+      this.gameObjects.delete(this.selectedObject.id);
+      const el = document.getElementById('game-object-pos') as HTMLPreElement;
+      el.innerText = '';
+    }
   }
 }

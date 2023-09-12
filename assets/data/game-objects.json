@@ -1,0 +1,10 @@
+[
+  { "pos": { "x": 366, "y": 166 }, "type": "Player" },
+  { "pos": { "x": 321, "y": 1090 }, "type": "BlobMonster" },
+  { "pos": { "x": 832, "y": 1091 }, "type": "BlobMonster" },
+  { "pos": { "x": 1026, "y": 323 }, "type": "BlobMonster" },
+  { "pos": { "x": 484, "y": 426 }, "type": "BlobMonster" },
+  { "pos": { "x": 214, "y": 241 }, "type": "PalmTree" },
+  { "pos": { "x": 480, "y": 249 }, "type": "PalmTree" },
+  { "pos": { "x": 250, "y": 361 }, "type": "PalmTree" }
+]

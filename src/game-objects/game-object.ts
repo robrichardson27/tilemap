@@ -12,7 +12,7 @@ import {
   rgbArrayToString,
 } from '../utils';
 import { aabbCollision } from './collision';
-import { GameObjectType, GameObjects } from './game-objects';
+import { GameObjectData, GameObjectType, GameObjects } from './game-objects';
 
 export interface GameObjectOptions extends CanvasLayerOptions {
   /**
@@ -108,6 +108,7 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
   img: HTMLImageElement;
   srcX: number;
   srcY: number;
+  type: GameObjectType;
 
   protected camera: Camera;
 
@@ -127,6 +128,7 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
     this.tileMaps = options.tileMaps ?? <TileMaps>{};
     this.stats = options.stats ?? <GameObjectStats>{};
     this.vector = new Vector(this.center, this.center);
+    this.type = options.type;
   }
 
   abstract render(
@@ -249,5 +251,12 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
       });
       context.closePath();
     }
+  }
+
+  export(): GameObjectData {
+    return {
+      pos: { x: this.x, y: this.y },
+      type: this.type,
+    };
   }
 }

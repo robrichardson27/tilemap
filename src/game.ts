@@ -42,14 +42,8 @@ export class Game {
       canvas: this.canvas,
     });
 
-    // Create and add game objects
-    // TODO: load from file and add to game editor
-    this.gameObjects
-      .addPlayer({ x: 350, y: 150 })
-      .addBlob({ x: 200, y: 300 })
-      .addBlob({ x: 500, y: 350 })
-      .addPalmTree({ x: 280, y: 210 })
-      .addPalmTree({ x: 420, y: 420 });
+    // Create and add game objects from file
+    this.gameObjects.load();
 
     // Create and add player ui to canvas
     const playerUi = new PlayerUi(this.gameObjects.getPlayer());
