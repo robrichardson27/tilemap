@@ -34,8 +34,21 @@ button {
   margin-bottom: 25px;
 }
 
-select {
-  background-color: #181818;
+select,
+input {
+  background-color: #1f1f1f;
+  border: 1px solid #333333;
+}
+
+.game-object-metadata {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.input-field {
+  display: grid;
+  grid-template-columns: 25% 1fr;
 }
 
 
