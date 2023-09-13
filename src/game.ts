@@ -48,6 +48,17 @@ export class Game {
     // Create and add player ui to canvas
     const playerUi = new PlayerUi(this.gameObjects.getPlayer());
     this.canvas.addLayer(playerUi);
+
+    // TODO: create game options
+    const muteEl = document.getElementById('mute-input');
+    muteEl?.addEventListener('change', (e) => {
+      const mute = (<HTMLInputElement>e.target).checked;
+      if (mute) {
+        BackgroundAudio.pause();
+      } else {
+        BackgroundAudio.start();
+      }
+    });
   }
 
   start() {

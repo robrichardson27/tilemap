@@ -1,6 +1,6 @@
 [
   {
-    "pos": { "x": 364, "y": 184 },
+    "pos": { "x": 364, "y": 174 },
     "type": "Player",
     "width": 34,
     "height": 46
@@ -42,12 +42,6 @@
     "height": 1
   },
   {
-    "pos": { "x": 272, "y": 429 },
-    "type": "PalmTree",
-    "width": 14,
-    "height": 1
-  },
-  {
     "pos": { "x": 46, "y": 405 },
     "type": "PalmTree",
     "width": 14,
@@ -82,5 +76,36 @@
     "type": "InvisibleGameObject",
     "width": 256,
     "height": 10
-  }
+  },
+  {
+    "pos": { "x": 1055, "y": 515 },
+    "type": "PalmTree",
+    "width": 14,
+    "height": 1
+  },
+  {
+    "pos": { "x": 673, "y": 596 },
+    "type": "PalmTree",
+    "width": 14,
+    "height": 1
+  },
+  {
+    "pos": { "x": 1108, "y": 898 },
+    "type": "PalmTree",
+    "width": 14,
+    "height": 1
+  },
+  {
+    "pos": { "x": 718, "y": 775 },
+    "type": "PalmTree",
+    "width": 14,
+    "height": 1
+  },
+  {
+    "pos": { "x": 683, "y": 1096 },
+    "type": "PalmTree",
+    "width": 14,
+    "height": 1
+  },
+  { "pos": { "x": 91, "y": 790 }, "type": "PalmTree", "width": 14, "height": 1 }
 ]

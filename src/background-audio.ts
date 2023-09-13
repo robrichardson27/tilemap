@@ -14,7 +14,13 @@ export class BackgroundAudio {
   static start() {
     BackgroundAudio.playWavesAudio();
     BackgroundAudio.playBirdsAudio();
-    // BackgroundAudio.playFieldMusic();
+    BackgroundAudio.playFieldMusic();
+  }
+
+  static pause() {
+    BackgroundAudio.pauseWavesAudio();
+    BackgroundAudio.pauseBirdsAudio();
+    BackgroundAudio.pauseFieldMusic();
   }
 
   static playWavesAudio() {
