@@ -9,11 +9,13 @@ import { BlobMonster } from './monsters/blob-monster';
 import { Player } from './player/player';
 import { PalmTree } from './scenery/palm-tree';
 import gameObjectsJson from '../../assets/data/game-objects.json';
+import { InvisibleGameObject } from './invisible-game-object';
 
 export enum GameObjectType {
   Player = 'Player',
   BlobMonster = 'BlobMonster',
   PalmTree = 'PalmTree',
+  InvisibleGameObject = 'InvisibleGameObject',
 }
 
 export interface GameObjectsOptions {
@@ -27,6 +29,8 @@ export interface GameObjectsOptions {
 export interface GameObjectData {
   pos: Point;
   type: GameObjectType;
+  width: number;
+  height: number;
 }
 
 export class GameObjects {
@@ -84,23 +88,23 @@ export class GameObjects {
 
   load() {
     const objects = gameObjectsJson as GameObjectData[];
-    objects.forEach((object) => this.createObject(object));
+    objects.forEach((objectData) => this.createObject(objectData));
   }
 
-  createObject(object: GameObjectData) {
-    switch (object.type) {
+  createObject(objectData: GameObjectData): GameObject {
+    switch (objectData.type) {
       case GameObjectType.Player:
-        this.addPlayer(object.pos);
-        break;
+        return this.createPlayer(objectData.pos);
       case GameObjectType.BlobMonster:
-        this.addBlob(object.pos);
-        break;
+        return this.createBlob(objectData.pos);
       case GameObjectType.PalmTree:
-        this.addPalmTree(object.pos);
+        return this.createPalmTree(objectData.pos);
+      case GameObjectType.InvisibleGameObject:
+        return this.createInvisible(objectData);
     }
   }
 
-  addPlayer(pos: Point): GameObjects {
+  createPlayer(pos: Point): Player {
     const player = new Player({
       pos: pos,
       camera: this.options.camera,
@@ -108,26 +112,37 @@ export class GameObjects {
       mouse: this.options.mouse,
     });
     this.set(player.id, player);
-    return this;
+    return player;
   }
 
   getPlayer(): Player {
-    return this.get(Player.PlayerId) as Player;
+    return this.get(Player.ID) as Player;
   }
 
-  addBlob(pos: Point): GameObjects {
+  createBlob(pos: Point): BlobMonster {
     const blob = new BlobMonster(
       pos,
       this.options.camera,
       this.options.tileMaps
     );
     this.set(blob.id, blob);
-    return this;
+    return blob;
   }
 
-  addPalmTree(pos: Point): GameObjects {
+  createPalmTree(pos: Point): PalmTree {
     const tree = new PalmTree(pos, this.options.camera);
     this.set(tree.id, tree);
-    return this;
+    return tree;
+  }
+
+  createInvisible(objectData: GameObjectData): GameObject {
+    const object = new InvisibleGameObject(
+      objectData.pos,
+      objectData.width,
+      objectData.height,
+      this.options.camera
+    );
+    this.set(object.id, object);
+    return object;
   }
 }

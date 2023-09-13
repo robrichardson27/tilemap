@@ -3,7 +3,6 @@ import { Camera } from '../camera';
 import { Canvas } from '../canvas';
 import { GameObject } from '../game-objects/game-object';
 import { GameObjects } from '../game-objects/game-objects';
-import { SceneryObject } from '../game-objects/scenery/scenery-object';
 import { GameObjectSelector } from './game-object-selector';
 
 export interface GameObjectPlacerOptions {
@@ -47,7 +46,6 @@ export class GameObjectPlacer {
       const y = Math.round(e.clientY - rect.top) + this.camera.y;
       this.selectedObject.x = x;
       this.selectedObject.y = y;
-      this.gameObjects.set(this.selectedObject.id, this.selectedObject);
       this.selectedObject = undefined;
     }
   }
@@ -55,29 +53,20 @@ export class GameObjectPlacer {
   onMouseMove(e: MouseEvent) {
     if (DEBUG.enabled && this.selectedObject) {
       const rect = this.gameCanvas.getBoundingClientRect();
-
       const x = Math.round(e.clientX - rect.left) + this.camera.x;
       const y = Math.round(e.clientY - rect.top) + this.camera.y;
+
       if (this.gameObjects.has(this.selectedObject.id)) {
         const selected = this.gameObjects.get(this.selectedObject.id);
         selected.x = x;
         selected.y = y;
-        // TODO: sort this out!!!
-        if (selected instanceof SceneryObject) {
-          selected.sceneryOptions.renderX = x;
-          selected.sceneryOptions.renderY = y;
-        }
       } else {
         this.selectedObject.x = x;
         this.selectedObject.y = y;
         this.gameObjects.set(this.selectedObject.id, this.selectedObject);
-        if (this.selectedObject instanceof SceneryObject) {
-          this.selectedObject.sceneryOptions.renderX = x;
-          this.selectedObject.sceneryOptions.renderY = y;
-        }
       }
 
-      const el = document.getElementById('game-object-pos') as HTMLPreElement;
+      const el = document.getElementById('game-object-pos') as HTMLSpanElement;
       el.innerText = `{ x: ${this.selectedObject.x}, y: ${this.selectedObject.y} }`;
     }
   }
@@ -85,7 +74,7 @@ export class GameObjectPlacer {
   onMouseLeave() {
     if (this.selectedObject) {
       this.gameObjects.delete(this.selectedObject.id);
-      const el = document.getElementById('game-object-pos') as HTMLPreElement;
+      const el = document.getElementById('game-object-pos') as HTMLSpanElement;
       el.innerText = '';
     }
   }

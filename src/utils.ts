@@ -25,18 +25,38 @@ export class Rectangle {
     ];
   }
 
+  /**
+   * a -- b
+   *
+   * d -- c
+   */
   get a(): Point {
     return this.vertices[0];
   }
 
+  /**
+   * a -- b
+   *
+   * d -- c
+   */
   get b(): Point {
     return this.vertices[1];
   }
 
+  /**
+   * a -- b
+   *
+   * d -- c
+   */
   get c(): Point {
     return this.vertices[2];
   }
 
+  /**
+   * a -- b
+   *
+   * d -- c
+   */
   get d(): Point {
     return this.vertices[3];
   }

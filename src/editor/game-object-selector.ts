@@ -1,25 +1,25 @@
-import { GameObject } from '../game-objects/game-object';
 import { BlobMonster } from '../game-objects/monsters/blob-monster';
-import { Camera } from '../camera';
 import { PalmTree } from '../game-objects/scenery/palm-tree';
-import { GameObjectType } from '../game-objects/game-objects';
-import { TileMaps } from '../tile-maps/tile-maps';
+import { GameObjectType, GameObjects } from '../game-objects/game-objects';
+import { GameObject, GameObjectOptions } from '../game-objects/game-object';
+import { InvisibleGameObject } from '../game-objects/invisible-game-object';
 
 export interface GameObjectData {
   type: GameObjectType;
-  sprite: any;
+  sprite?: any;
 }
 
 export class GameObjectSelector {
   private ui: HTMLDivElement;
-  private selected: GameObject | undefined;
+  private selectedObject: GameObject | undefined;
+  private selectedType: GameObjectType | undefined;
   private objects: GameObjectData[];
-  private camera: Camera;
-  private tileMaps: TileMaps;
+  private gameObjects: GameObjects;
 
-  constructor(camera: Camera, tileMaps: TileMaps) {
-    this.camera = camera;
-    this.tileMaps = tileMaps;
+  private selectedObjectOptions: GameObjectOptions = <GameObjectOptions>{};
+
+  constructor(gameObjects: GameObjects) {
+    this.gameObjects = gameObjects;
     this.objects = [
       {
         type: GameObjectType.BlobMonster,
@@ -29,6 +29,10 @@ export class GameObjectSelector {
         type: GameObjectType.PalmTree,
         sprite: PalmTree.sprite,
       },
+      {
+        type: GameObjectType.InvisibleGameObject,
+        sprite: InvisibleGameObject.sprite,
+      },
     ];
     this.ui = document.getElementById('game-object-selector') as HTMLDivElement;
     this.objects.forEach((object) => {
@@ -36,9 +40,33 @@ export class GameObjectSelector {
       swatchEl.src = object.sprite;
       swatchEl.width = 64;
       swatchEl.height = 64;
+      const styles = `margin-right: 4px; border: solid 2px rgba(0,0,0,0); cursor: pointer; object-fit: contain;`;
+      swatchEl.style.cssText = styles;
       swatchEl.setAttribute('data-type', object.type + '');
       swatchEl.addEventListener('mousedown', this.onMouseDown.bind(this));
       this.ui.append(swatchEl);
+    });
+
+    const widthEl = document.getElementById(
+      'game-object-width-input'
+    ) as HTMLInputElement;
+    const heightEl = document.getElementById(
+      'game-object-height-input'
+    ) as HTMLInputElement;
+
+    widthEl.addEventListener('input', (e) => {
+      const width = parseInt((e.target as HTMLInputElement).value);
+      this.selectedObjectOptions.width = width;
+      if (this.selectedObject) {
+        this.selectedObject.width = width;
+      }
+    });
+    heightEl.addEventListener('input', (e) => {
+      const height = parseInt((e.target as HTMLInputElement).value);
+      this.selectedObjectOptions.height = height;
+      if (this.selectedObject) {
+        this.selectedObject.height = height;
+      }
     });
   }
 
@@ -51,30 +79,48 @@ export class GameObjectSelector {
   }
 
   getSelectedObject(): GameObject | undefined {
-    return this.selected;
+    return this.selectedObject;
   }
 
   setSelectedObject(object: GameObject | undefined) {
-    this.selected = object;
+    this.selectedObject = object;
+    this.selectedType = undefined;
+    if (object === undefined) {
+      this.clearSelectedStyle();
+    }
   }
 
   private onMouseDown(e: MouseEvent) {
+    this.clearSelectedStyle();
     const type = (e.target as HTMLImageElement).getAttribute(
       'data-type'
-    ) as string;
+    ) as GameObjectType;
+    (e.target as HTMLImageElement).style.border = '2px solid red';
 
-    // Instantiate new object
-    switch (type) {
-      case GameObjectType.BlobMonster:
-        this.selected = new BlobMonster(
-          { x: 0, y: 0 },
-          this.camera,
-          this.tileMaps
-        );
-        break;
-      case GameObjectType.PalmTree:
-        this.selected = new PalmTree({ x: 0, y: 0 }, this.camera);
-        break;
+    if (type === this.selectedType) {
+      this.selectedType = undefined;
+      this.selectedObject = undefined;
+      this.clearSelectedStyle();
+    } else {
+      this.selectedType = type;
+      this.selectedObject = this.gameObjects.createObject({
+        type: type,
+        pos: { x: -100, y: -100 },
+        width: this.selectedObjectOptions.width
+          ? this.selectedObjectOptions.width
+          : 0,
+        height: this.selectedObjectOptions.height
+          ? this.selectedObjectOptions.height
+          : 0,
+      });
     }
+  }
+
+  private clearSelectedStyle(): void {
+    this.ui.childNodes.forEach((tile) => {
+      if (tile instanceof HTMLImageElement) {
+        (tile as HTMLImageElement).style.border = '2px solid rgba(0,0,0,0)';
+      }
+    });
   }
 }

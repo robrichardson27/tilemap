@@ -1,33 +1,46 @@
 import { Camera } from '../../camera';
 import { Point } from '../../utils';
-import { SceneryObject } from './scenery-object';
 import palmTreeImgSrc from '../../../assets/sprites/tree-palm.png';
 import { GameObjectType } from '../game-objects';
+import { AnimationController } from '../animation-controller';
+import { GameObjectAnimated } from '../game-object-animated';
 
 let nextId = 0;
 
-export class PalmTree extends SceneryObject {
-  static palmTreeId = 'palm-tree-';
+export class PalmTree extends GameObjectAnimated {
+  static ID = 'palm-tree-';
   static sprite = palmTreeImgSrc;
 
   constructor(pos: Point, camera: Camera) {
     super({
       type: GameObjectType.PalmTree,
-      id: PalmTree.palmTreeId + nextId++,
+      id: PalmTree.ID + nextId++,
       hide: false,
-      layer: 1,
-      x: pos.x + 29,
-      y: pos.y + 42,
-      width: 24,
-      height: 50,
-      srcX: 0,
-      srcY: 0,
+      layer: 4,
+      x: pos.x,
+      y: pos.y,
+      width: 14,
+      height: 1,
       camera: camera,
-      imgSrc: PalmTree.sprite,
-      renderX: pos.x,
-      renderY: pos.y,
-      renderWidth: 64,
-      renderHeight: 93,
+      animation: new AnimationController({
+        duration: 0,
+        srcImg: PalmTree.sprite,
+        srcX: 0,
+        srcY: 0,
+        offsetX: -34,
+        offsetY: -57,
+        width: 64,
+        height: 93,
+        speed: 0,
+      }),
     });
+  }
+
+  render(context: CanvasRenderingContext2D): void {
+    this.animation.render(context, this.pos);
+  }
+
+  update(): void {
+    // Not implemented
   }
 }

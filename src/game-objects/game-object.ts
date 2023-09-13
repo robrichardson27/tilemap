@@ -5,6 +5,7 @@ import { Tile, TileHelper, TileType } from '../tile-maps/tile';
 import { TileMap } from '../tile-maps/tile-map';
 import { TileMaps } from '../tile-maps/tile-maps';
 import {
+  Point,
   Rectangle,
   RgbArray,
   Vector,
@@ -38,23 +39,9 @@ export interface GameObjectOptions extends CanvasLayerOptions {
    */
   height: number;
   /**
-   * The x-axis coordinate of the top left corner of the sub-rectangle
-   * of the source image to draw into the destination context
-   */
-  srcX?: number;
-  /**
-   * The y-axis coordinate of the top left corner of the sub-rectangle
-   * of the source image to draw into the destination context
-   */
-  srcY?: number;
-  /**
    * Current game camera object
    */
   camera: Camera;
-  /**
-   * Source sprite image use `.png`
-   */
-  imgSrc?: string;
   /**
    * Used for collision detection with background tilemaps
    */
@@ -105,10 +92,11 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
   vector: Vector;
   stats: GameObjectStats;
   prev!: Rectangle;
-  img: HTMLImageElement;
-  srcX: number;
-  srcY: number;
   type: GameObjectType;
+
+  get pos(): Point {
+    return { x: this.x - this.camera.x, y: this.y - this.camera.y };
+  }
 
   protected camera: Camera;
 
@@ -117,10 +105,6 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
 
   constructor(options: GameObjectOptions) {
     super(options.x, options.y, options.width, options.height);
-    this.img = new Image();
-    this.img.src = options.imgSrc as string;
-    this.srcX = options.srcX as number;
-    this.srcY = options.srcY as number;
     this.id = options.id;
     this.hide = options.hide;
     this.layer = options.layer;
@@ -211,6 +195,8 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
       collides = aabbCollision(this, tile, this.camera);
     });
 
+    // TODO: move collision detection for other game objects here
+
     return collides;
   }
 
@@ -257,6 +243,8 @@ export abstract class GameObject extends Rectangle implements CanvasLayer {
     return {
       pos: { x: this.x, y: this.y },
       type: this.type,
+      width: this.width,
+      height: this.height,
     };
   }
 }

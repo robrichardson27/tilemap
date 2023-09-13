@@ -1,10 +1,86 @@
 [
-  { "pos": { "x": 366, "y": 166 }, "type": "Player" },
-  { "pos": { "x": 321, "y": 1090 }, "type": "BlobMonster" },
-  { "pos": { "x": 832, "y": 1091 }, "type": "BlobMonster" },
-  { "pos": { "x": 1026, "y": 323 }, "type": "BlobMonster" },
-  { "pos": { "x": 484, "y": 426 }, "type": "BlobMonster" },
-  { "pos": { "x": 214, "y": 241 }, "type": "PalmTree" },
-  { "pos": { "x": 480, "y": 249 }, "type": "PalmTree" },
-  { "pos": { "x": 250, "y": 361 }, "type": "PalmTree" }
+  {
+    "pos": { "x": 364, "y": 184 },
+    "type": "Player",
+    "width": 34,
+    "height": 46
+  },
+  {
+    "pos": { "x": 321, "y": 1090 },
+    "type": "BlobMonster",
+    "width": 64,
+    "height": 76
+  },
+  {
+    "pos": { "x": 832, "y": 1091 },
+    "type": "BlobMonster",
+    "width": 64,
+    "height": 76
+  },
+  {
+    "pos": { "x": 1026, "y": 323 },
+    "type": "BlobMonster",
+    "width": 64,
+    "height": 76
+  },
+  {
+    "pos": { "x": 235, "y": 285 },
+    "type": "PalmTree",
+    "width": 14,
+    "height": 1
+  },
+  {
+    "pos": { "x": 517, "y": 312 },
+    "type": "PalmTree",
+    "width": 14,
+    "height": 1
+  },
+  {
+    "pos": { "x": 299, "y": 378 },
+    "type": "PalmTree",
+    "width": 14,
+    "height": 1
+  },
+  {
+    "pos": { "x": 272, "y": 429 },
+    "type": "PalmTree",
+    "width": 14,
+    "height": 1
+  },
+  {
+    "pos": { "x": 46, "y": 405 },
+    "type": "PalmTree",
+    "width": 14,
+    "height": 1
+  },
+  {
+    "pos": { "x": 0, "y": 254 },
+    "type": "InvisibleGameObject",
+    "width": 192,
+    "height": 10
+  },
+  {
+    "pos": { "x": 182, "y": 273 },
+    "type": "InvisibleGameObject",
+    "width": 10,
+    "height": 384
+  },
+  {
+    "pos": { "x": 320, "y": 515 },
+    "type": "InvisibleGameObject",
+    "width": 10,
+    "height": 192
+  },
+  {
+    "pos": { "x": 565, "y": 515 },
+    "type": "InvisibleGameObject",
+    "width": 10,
+    "height": 192
+  },
+  {
+    "pos": { "x": 320, "y": 512 },
+    "type": "InvisibleGameObject",
+    "width": 256,
+    "height": 10
+  }
 ]

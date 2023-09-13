@@ -21,10 +21,7 @@ export class Debugger {
     this.enabled = enabled;
     this.game = game;
     this.tileSelector = new TileSelector();
-    this.gameObjectSelector = new GameObjectSelector(
-      game.camera,
-      game.tileMaps
-    );
+    this.gameObjectSelector = new GameObjectSelector(game.gameObjects);
     this.gameObjectPlacer = new GameObjectPlacer({
       gameObjects: game.gameObjects,
       gameObjectSelector: this.gameObjectSelector,

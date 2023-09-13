@@ -1,4 +1,3 @@
-import { TileMap } from '../../tile-maps/tile-map';
 import { Player } from '../player/player';
 import {
   Circle,
@@ -6,21 +5,21 @@ import {
   rgbArrayOpacity,
   rgbArrayToString,
 } from '../../utils';
-import {
-  GameObject,
-  GameObjectOptions,
-  GameObjectUpdateArguments,
-} from '../game-object';
+import { GameObject, GameObjectUpdateArguments } from '../game-object';
 import { aabbCollision, circleInRectangle } from '../collision';
 import { playPlayerPainAudio } from '../player/player-audio';
+import {
+  GameObjectAnimated,
+  GameObjectAnimatedOptions,
+} from '../game-object-animated';
 
-export abstract class Monster extends GameObject {
+export abstract class Monster extends GameObjectAnimated {
   private detectionRadius = 100;
   private detectionCircle!: Circle;
   private doDamage = false;
   private characterDetected = false;
 
-  constructor(options: GameObjectOptions) {
+  constructor(options: GameObjectAnimatedOptions) {
     super(options);
     this.setDetectionCircle();
     this.debugColor = [0, 128, 0];
@@ -28,7 +27,7 @@ export abstract class Monster extends GameObject {
 
   update(args: GameObjectUpdateArguments) {
     if (args.gameObjects) {
-      const player = args.gameObjects.get(Player.PlayerId);
+      const player = args.gameObjects.get(Player.ID);
       if (player) {
         // Move monster if player detected
         this.detectPlayer(player);
@@ -41,9 +40,11 @@ export abstract class Monster extends GameObject {
     this.setDetectionCircle();
   }
 
-  render(context: CanvasRenderingContext2D, tick: number) {
-    this.renderMonster(context, tick);
-    if (this.characterDetected) this.renderHealth(context);
+  render(context: CanvasRenderingContext2D) {
+    this.renderMonster(context);
+    if (this.characterDetected) {
+      this.renderHealth(context);
+    }
   }
 
   private gameObjectsCollisionDetection(args: GameObjectUpdateArguments) {
@@ -55,7 +56,7 @@ export abstract class Monster extends GameObject {
       // Detect if object collides with another
       const collides = aabbCollision(this, object);
       if (collides) {
-        if (object.id === Player.PlayerId) {
+        if (object.id === Player.ID) {
           // Reduce player health on collision
           this.attackPlayer(object as Player, args.tick);
         } else {
@@ -104,20 +105,8 @@ export abstract class Monster extends GameObject {
     }
   }
 
-  private renderMonster(context: CanvasRenderingContext2D, tick: number) {
-    const tickOffset = tick % 4;
-    const imgSrcXOffset = this.srcX + tickOffset * TileMap.TSize;
-    context.drawImage(
-      this.img,
-      imgSrcXOffset,
-      this.srcY,
-      this.width,
-      this.height,
-      this.x - this.camera.x,
-      this.y - this.camera.y,
-      this.width,
-      this.height
-    );
+  private renderMonster(context: CanvasRenderingContext2D) {
+    this.animation.render(context, this.pos);
   }
 
   private renderHealth(context: CanvasRenderingContext2D) {

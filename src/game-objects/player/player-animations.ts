@@ -1,4 +1,4 @@
-import { AnimationController } from '../../animation-controller';
+import { AnimationController } from '../animation-controller';
 import idleImgSrc from '../../../assets/sprites/player-idle.png';
 import walkDownImgSrc from '../../../assets/sprites/player-walk-down.png';
 import walkRightImgSrc from '../../../assets/sprites/player-walk-right.png';

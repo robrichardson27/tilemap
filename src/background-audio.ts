@@ -14,7 +14,7 @@ export class BackgroundAudio {
   static start() {
     BackgroundAudio.playWavesAudio();
     BackgroundAudio.playBirdsAudio();
-    BackgroundAudio.playFieldMusic();
+    // BackgroundAudio.playFieldMusic();
   }
 
   static playWavesAudio() {

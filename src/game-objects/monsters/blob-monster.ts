@@ -4,29 +4,27 @@ import blobImgSrc from '../../../assets/sprites/blob.png';
 import { Monster } from './monster';
 import { GameObjectType } from '../game-objects';
 import { TileMaps } from '../../tile-maps/tile-maps';
+import { AnimationController } from '../animation-controller';
 
 let nextId = 0;
 
 export class BlobMonster extends Monster {
-  static BlobId = 'blob-monster-';
+  static ID = 'blob-monster-';
   static sprite = blobImgSrc;
   /**
    * Create a blob monster
    */
   constructor(pos: Point, camera: Camera, tileMaps: TileMaps) {
     super({
-      id: BlobMonster.BlobId + nextId++,
+      id: BlobMonster.ID + nextId++,
       type: GameObjectType.BlobMonster,
       hide: false,
-      layer: 2,
+      layer: 3,
       x: pos.x,
       y: pos.y,
       width: 64,
       height: 76,
-      srcX: 2,
-      srcY: 0,
       camera: camera,
-      imgSrc: BlobMonster.sprite,
       tileMaps: tileMaps,
       stats: {
         speed: 1.5,
@@ -34,6 +32,17 @@ export class BlobMonster extends Monster {
         attackPower: 0.5,
         attackSpeed: 20,
       },
+      animation: new AnimationController({
+        duration: 4,
+        srcImg: BlobMonster.sprite,
+        srcX: 2,
+        srcY: 0,
+        offsetX: 0,
+        offsetY: 0,
+        width: 64,
+        height: 76,
+        speed: 10,
+      }),
     });
   }
 }

@@ -64,6 +64,7 @@ export class Game {
         BackgroundAudio.start();
         // Run game
         this.run(0);
+        console.log(this);
       });
   }
 
@@ -86,14 +87,20 @@ export class Game {
       this.stop();
     }
     // Update all objects
-    this.gameObjects.forEach((object, options) =>
+    this.gameObjects.forEach((object, options) => {
       object.update({
         gameObjects: this.gameObjects,
         keyboard: options.keyboard,
         tick: this.tick,
         canvas: this.canvas,
-      })
-    );
+      });
+      // TODO: tidy this up
+      if (object.c.y > player.y) {
+        object.layer = 1;
+      } else {
+        object.layer = 3;
+      }
+    });
   }
 
   private render() {

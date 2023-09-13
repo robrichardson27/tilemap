@@ -4,7 +4,7 @@ import { Point, Rectangle, rgbArrayToString } from '../../utils';
 import { Camera } from '../../camera';
 import { Key } from '../../keyboard';
 import { Mouse } from '../../mouse';
-import { AnimationController } from '../../animation-controller';
+import { AnimationController } from '../animation-controller';
 import { PlayerAnimations } from './player-animations';
 import {
   attackDown,
@@ -33,7 +33,7 @@ export interface PlayerOptions {
  * Render a player game object
  */
 export class Player extends GameObject {
-  static PlayerId = 'player';
+  static ID = 'player';
   static FarEdgeDistFactor = 0.75;
   static NearEdgeDistFactor = 0.25;
 
@@ -53,9 +53,9 @@ export class Player extends GameObject {
   constructor(options: PlayerOptions) {
     super({
       type: GameObjectType.Player,
-      id: Player.PlayerId,
+      id: Player.ID,
       hide: false,
-      layer: 1,
+      layer: 2,
       x: options.pos.x,
       y: options.pos.y,
       width: 34,
@@ -200,18 +200,14 @@ export class Player extends GameObject {
   }
 
   private renderCharacter(context: CanvasRenderingContext2D) {
-    const pos: Point = {
-      x: this.x - this.camera.x,
-      y: this.y - this.camera.y,
-    };
     if (this.isAttacking) {
-      this.isAttacking = !this.currentAttackAnimation.render(context, pos);
+      this.isAttacking = !this.currentAttackAnimation.render(context, this.pos);
       pausePlayerRunningAudio();
     } else if (this.isWalking) {
-      this.currentWalkAnimation.render(context, pos);
+      this.currentWalkAnimation.render(context, this.pos);
       playPlayerRunningAudio();
     } else {
-      this.playerAnimations.idle.render(context, pos);
+      this.playerAnimations.idle.render(context, this.pos);
       pausePlayerRunningAudio();
     }
 
